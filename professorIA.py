@@ -12,7 +12,7 @@ import winsound
 
 ##########GROQ
 
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "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"
 MODELO_GROQ = "llama-3.3-70b-versatile"
 cliente_groq = Groq(api_key=GROQ_API_KEY)
 
