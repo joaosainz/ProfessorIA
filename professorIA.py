@@ -20,7 +20,7 @@ cliente_groq = Groq(api_key=GROQ_API_KEY)
 
 nomes_alunos = ["Gabriel", "Sophia", "Lucas", "Beatriz", "Matheus", "Heloísa", "Rodrigo", "Alice", "Pedro", "Davi", "Felipe", "Caio", "Gustavo", "Henrique", "Rafael", "Thiago", "Bruno", "Leonardo", "Vinícius", "Arthur", "Isabella", "Valentina", "Júlia", "Manuela", "Larissa", "Camila", "Fernanda", "Mariana", "Letícia", "Amanda", "Carolina", "Giovanna", "Theo", "Bento", "Murilo", "Cauã", "Lívia", "Rebeca", "Yasmin", "Talita",]
 personalidades = [
-    "Curioso que faz muitas perguntas avançadas",
+    "Curioso e que faz muitas perguntas avançadas",
     "Tímido, com muitas dificuldades na base elementar da matéria",
     "Distraído, que precisa de analogias e exemplos práticos da vida real para conseguir focar",
     "Dedicado e esmerado, mas que se confunde muito fácil com regras e lógica",
