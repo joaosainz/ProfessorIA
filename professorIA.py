@@ -52,6 +52,7 @@ historico_avaliacao = []
 salas_de_aula = 0
 interacoes_atuais = 0
 max_interacoes = 4
+input_fechado = True
 aluno_atual = None
 personalidade_atual = None
 simulacao_ativa = False
@@ -163,6 +164,7 @@ def historico():
     else:
         for item in historico_avaliacao:
             texto_formatado += f"AULA: {item['Aula']}\n\n"
+            texto_formatado += f"PROFESSOR: {item['Nome']}\n\n"
             texto_formatado += f"TEMA: {item['Tema']}\n\n"
             texto_formatado += f"PERSONALIDADE: {item['Personalidade']}.\n\n"
             texto_formatado += f"AVALIAÇÃO: {item['Avaliação']}\n\n"
@@ -196,8 +198,14 @@ def obter_caminho(arquivo):
 ##########FUNÇÕES DE EVENTOS
 
 def gerar_perfil():
-    winsound.PlaySound(obter_caminho("conectar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
     global aluno_atual, personalidade_atual, historico_contexto, interacoes_atuais, salas_de_aula
+    #
+    if not nome_professor.get().strip().isalpha():
+        reiniciar_aula()
+        adicionar_balao_chat("Entrada inválida na sala de aula", f"Digite um nome válido para começar a aula!", "erro")
+        return
+    #
+    winsound.PlaySound(obter_caminho("conectar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
     #
     aluno_atual = random.choice(nomes_alunos)
     personalidade_atual = random.choice(personalidades)
@@ -213,11 +221,12 @@ def gerar_perfil():
     progresso.config(text=f"Progresso: 0 de {max_interacoes} interações — Sala de Aula {salas_de_aula}")
     #
     adicionar_balao_chat(None, f"📢 O(A) aluno(a) {aluno_atual} entrou na sala.\n\nSeu coordenador te disse que a personalidade do aluno é: \n{personalidade_atual}", "sistema")
-    adicionar_balao_chat(None, f"📢 O professor entrou na sala.", "sistema")
+    adicionar_balao_chat(None, f"📢 {nome_professor.get()} entrou na sala.", "sistema")
     #
     comecar.config(state="normal", bg="#2b7a4b", fg="white")
     btn_sair_aula.config(state="normal", bg="#aa3a3a", fg="white")
     tema.config(state="normal", fg="white", bg="#18181c")
+    nome_professor.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
     btn_sobre.config(state="normal", bg="#1E96FC", fg="white")
     btn_historico.config(state="normal", bg="#1E96FC", fg="white")
     #
@@ -226,7 +235,6 @@ def gerar_perfil():
     overlay.destroy()
 
 def iniciar_simulacao():
-    winsound.PlaySound(obter_caminho("iniciar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
     global simulacao_ativa
     if not aluno_atual: return
     #
@@ -235,9 +243,15 @@ def iniciar_simulacao():
     btn_entrar_aula.config(state="disabled", bg="#444449")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
     #
+    if not tema.get().strip().isalpha():
+        reiniciar_aula()
+        adicionar_balao_chat("Sala de aula encerrada", f"Digite um tema válido para começar a aula!", "erro")
+        return
+    #
+    winsound.PlaySound(obter_caminho("iniciar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
     prompt_sistema = (
         f"Você é um estudante real chamado {aluno_atual}. Sua personalidade é: {personalidade_atual}. "
-        f"Você está em uma aula com seu professor sobre o tema: '{tema.get()}'. "
+        f"Você está em uma aula com seu professor {nome_professor.get()} sobre o tema: '{tema.get()}'. "
         "Responda estritamente em português brasileiro, agindo como o aluno de verdade. "
         "Gere respostas curtas (máximo de 2 frases), simulando mensagens instantâneas de chat. "
         "Mantenha sempre suas dúvidas focadas no tema e de acordo com as falhas da sua personalidade. "
@@ -254,13 +268,14 @@ def iniciar_simulacao():
     root.after(7000, lambda: adicionar_fala_aluno_e_liberar_interface(duvida_inicial))
 
 def enviar_mensagem_professor():
-    winsound.PlaySound(obter_caminho("mensagemenviada.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
-    global interacoes_atuais
+    global interacoes_atuais, input_fechado
     #
     texto_professor = input_mensagem.get("1.0", "end-1c").strip()
-    if not texto_professor or not simulacao_ativa: return
+    if not texto_professor or not simulacao_ativa or input_fechado == True: return
+    winsound.PlaySound(obter_caminho("mensagemenviada.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
+    input_fechado = True
     #
-    adicionar_balao_chat("Você (Professor)", texto_professor, "professor")
+    adicionar_balao_chat(nome_professor.get(), texto_professor, "professor")
     historico_contexto.append({"role": "user", "content": texto_professor})
     #
     input_mensagem.config(state="normal")
@@ -313,6 +328,10 @@ def adicionar_balao_chat(remetente, texto, tipo):
     elif tipo == "ambiental":
         balao = tk.Label(linha_frame, text=f"🌿 {remetente}\n{texto}", font=("Consolas", 11, "bold"), bg="#0d2b1a", fg="#4caf7d", justify="left", wraplength=int(canvas_chat.winfo_width() * 0.80), padx=12, pady=8, bd=1, relief="solid")
         balao.pack(side="top", anchor="center", pady=5)
+    #
+    elif tipo == "erro":
+        balao = tk.Label(linha_frame, text=f"❌ {remetente}\n{texto}", font=("Consolas", 10, "italic"), bg="#c03434", fg="#f3f3f3", justify="left", wraplength=int(canvas_chat.winfo_width() * 0.80), padx=10, pady=5, bd=1, relief="solid")
+        balao.pack(side="top", anchor="center", pady=5)
     canvas_chat.update_idletasks()
     canvas_chat.configure(scrollregion=canvas_chat.bbox("all"))
     canvas_chat.yview_moveto(1.0)
@@ -321,8 +340,14 @@ def adicionar_fala_aluno_e_liberar(texto):
     adicionar_fala_aluno_e_liberar_interface(texto)
 
 def adicionar_fala_aluno_e_liberar_interface(texto):
+    global input_fechado, simulacao_ativa
+    #
+    if simulacao_ativa == False:
+        return
+    #
     adicionar_balao_chat(aluno_atual, texto, "aluno")
     #
+    input_fechado = False
     input_mensagem.config(state="normal", fg="white", bg="#18181c")
     input_mensagem.delete("1.0", tk.END)
     input_mensagem.focus_set()
@@ -349,6 +374,7 @@ def reiniciar_aula():
     input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
     #
     btn_entrar_aula.config(state="normal", bg="#2b7a4b", fg="white")
+    nome_professor.config(state="normal", fg="white", bg="#18181c")
     comecar.config(state="disabled", bg="#444449", fg="#8f8f98")
     btn_sair_aula.config(state="disabled", bg="#444449", fg="#8f8f98")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
@@ -364,7 +390,7 @@ def finalizar_aula():
     prompt_aval = [{
         "role": "user",
         "content": (
-            f"Você é um pedagogo especialista em ensino. Avalie a seguinte sequência de respostas que um professor deu "
+            f"Você é um pedagogo especialista em ensino. Avalie a seguinte sequência de respostas que o professor {nome_professor.get()} deu "
             f"para o aluno {aluno_atual} ({personalidade_atual}) sobre o tema '{tema.get()}'.\n"
             f"Histórico da aula: \"{historico_contexto}\"\n\n."
             f"Escreva uma crítica curta avaliando o desempenho do professor na aula."
@@ -378,6 +404,7 @@ def finalizar_aula():
     #
     historico_avaliacao.append({
     "Aula": salas_de_aula,
+    "Nome": nome_professor.get(),
     "Personalidade": personalidade_atual,
     "Avaliação": critica,
     "Tema": tema.get()})
@@ -402,6 +429,7 @@ def finalizar_aula():
     input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
     #
     btn_entrar_aula.config(state="normal", bg="#2b7a4b", fg="white")
+    nome_professor.config(state="normal", fg="white", bg="#18181c")
     comecar.config(state="disabled", bg="#444449", fg="#8f8f98")
     btn_sair_aula.config(state="disabled", bg="#444449", fg="#8f8f98")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
@@ -416,8 +444,8 @@ root = tk.Tk()
 root.title("ProfessorIA - Simulador Docente")
 root.iconbitmap(obter_caminho("professorIA.ico"))
 root.configure(bg="#121214")
-largura, altura = 1024, 620
-root.minsize(1024, 620)
+largura, altura = 1172, 710
+root.minsize(1172, 710)
 tela_largura = root.winfo_screenwidth()
 tela_altura = root.winfo_screenheight()
 x = (tela_largura // 2) - (largura // 2)
@@ -433,37 +461,44 @@ painel_esquerdo.grid(row=0, column=0, sticky="nsew", padx=(0, 2))
 painel_esquerdo.grid_propagate(False)
 tk.Label(painel_esquerdo, text="👨‍🏫 ProfessorIA", font=("Consolas", 24, "bold"), bg="#202024", fg="white").grid(row=0, column=0, sticky="w", padx=20, pady=(30, 10))
 #
-btn_entrar_aula = tk.Button(painel_esquerdo, text="🚪 Entrar na Sala de Aula", font=("Consolas", 12, "bold"), bg="#2b7a4b", fg="white", bd=0, relief="flat", height=2, width=26, command=gerar_perfil)
-btn_entrar_aula.grid(row=1, column=0, padx=20, pady=(0, 15), sticky="ew")
+tk.Label(painel_esquerdo, text="Qual o nome do professor?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=1, column=0, sticky="w", padx=20, pady=(5, 5))
 #
-tk.Frame(painel_esquerdo, bg="#29292e", height=1).grid(row=2, column=0, sticky="ew", padx=20, pady=(0, 20))
-tk.Label(painel_esquerdo, text="Configuração da Aula", font=("Consolas", 16, "bold"), bg="#202024", fg="#e1e1e6").grid(row=3, column=0, sticky="w", padx=20, pady=(10, 20))
-tk.Label(painel_esquerdo, text="Qual o tema/conceito da aula?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=4, column=0, sticky="w", padx=20, pady=(5, 5))
+nome_professor = tk.Entry(painel_esquerdo, font=("Consolas", 12), bg="#121214", fg="black", insertbackground="black", bd=1, relief="solid")
+nome_professor.insert(0, " ")
+nome_professor.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
+nome_professor.config(state="normal", fg="white", bg="#18181c")
+#
+btn_entrar_aula = tk.Button(painel_esquerdo, text="🚪 Entrar na Sala de Aula", font=("Consolas", 12, "bold"), bg="#2b7a4b", fg="white", bd=0, relief="flat", height=2, width=26, command=gerar_perfil)
+btn_entrar_aula.grid(row=3, column=0, padx=20, pady=(0, 15), sticky="ew")
+#
+tk.Frame(painel_esquerdo, bg="#29292e", height=1).grid(row=4, column=0, sticky="ew", padx=20, pady=(0, 20))
+tk.Label(painel_esquerdo, text="Configuração da Aula", font=("Consolas", 16, "bold"), bg="#202024", fg="#e1e1e6").grid(row=5, column=0, sticky="w", padx=20, pady=(10, 20))
+tk.Label(painel_esquerdo, text="Qual o tema/conceito da aula?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=6, column=0, sticky="w", padx=20, pady=(5, 5))
 #
 tema = tk.Entry(painel_esquerdo, font=("Consolas", 12), bg="#121214", fg="black", insertbackground="black", bd=1, relief="solid")
 tema.insert(0, " ")
-tema.grid(row=5, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
+tema.grid(row=7, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
 tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
 #
 comecar = tk.Button(painel_esquerdo, text="🚀 Iniciar Simulação", font=("Consolas", 12, "bold"), bg="#444449", fg="#8f8f98", bd=0, relief="flat", height=2, command=iniciar_simulacao)
-comecar.grid(row=6, column=0, padx=20, pady=(0, 15), sticky="ew")
+comecar.grid(row=8, column=0, padx=20, pady=(0, 15), sticky="ew")
 comecar.config(state="disabled", bg="#444449", fg="#8f8f98")
 #
 btn_sair_aula = tk.Button(painel_esquerdo, text="🏃 Sair da Sala de Aula", font=("Consolas", 12, "bold"), bg="#444449", fg="#8f8f98", bd=0, relief="flat", height=2, command=reiniciar_aula)
-btn_sair_aula.grid(row=7, column=0, padx=20, pady=(0, 15), sticky="ew")
+btn_sair_aula.grid(row=9, column=0, padx=20, pady=(0, 15), sticky="ew")
 btn_sair_aula.config(state="disabled", bg="#444449", fg="#8f8f98")
 #
 btn_historico = tk.Button(painel_esquerdo, text="📜 Histórico", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="flat", height=2, command=historico)
-btn_historico.grid(row=8, column=0, padx=20, pady=(0, 15), sticky="ew")
+btn_historico.grid(row=10, column=0, padx=20, pady=(0, 15), sticky="ew")
 btn_historico.config(state="disabled", bg="#444449", fg="#8f8f98")
 #
 btn_sobre = tk.Button(painel_esquerdo, text="📌 Sobre o App", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="flat", height=2, command=sobre_app)
-btn_sobre.grid(row=9, column=0, padx=20, pady=(0, 15), sticky="ew")
+btn_sobre.grid(row=11, column=0, padx=20, pady=(0, 15), sticky="ew")
 btn_sobre.config(state="disabled", bg="#444449", fg="#8f8f98")
 #
-overlay = tk.Frame(painel_esquerdo, bg="#202024", width=300, height=620)
-overlay.place(x=0, y=145, relwidth=1, relheight=0.75)
-tk.Label(overlay, text="🔒\nDesbloqueia após entrar \nna sala de aula pela primeira vez", font=("Consolas", 11, "italic"), bg="#202024", fg="#555560", justify="center").place(relx=0.5, rely=0.5, anchor="center")
+overlay = tk.Frame(painel_esquerdo, bg="#202024", width=300, height=700)
+overlay.place(x=0, y=250, relwidth=1, relheight=0.75)
+tk.Label(overlay, text="🔒\nDesbloqueia após entrar \nna sala de aula pela primeira vez", font=("Consolas", 11, "italic"), bg="#202024", fg="#555560", justify="center").place(relx=0.5, rely=0.3, anchor="center")
 #
 direitos = tk.Label(painel_esquerdo, text="UnB - Computação - APC 06\nGarotos de Programa", bg="#202024", fg="gray")
 direitos.place(relx=0.5, rely=1.0, anchor="s", y=-10)
