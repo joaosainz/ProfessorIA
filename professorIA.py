@@ -7,12 +7,15 @@ import os
 import sys
 import time
 import datetime
+from dotenv import load_dotenv
 from groq import Groq
 import winsound
 
 ##########GROQ
 
-GROQ_API_KEY = "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"
+caminho_env = obter_caminho(".env")
+load_dotenv(dotenv_path=caminho_env)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MODELO_GROQ = "llama-3.3-70b-versatile"
 cliente_groq = Groq(api_key=GROQ_API_KEY)
 
@@ -175,7 +178,6 @@ def historico():
     #
     scrollbar_hist.pack(side="right", fill="y")
     text_area.pack(side="left", fill="both", expand=True)
-    
 ##########FUNÇÕES DE FUNCIONALIDADE
 
 def configurar_scroll_largura(event):
