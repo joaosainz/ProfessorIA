@@ -13,7 +13,11 @@ import winsound
 
 ##########GROQ
 
-caminho_env = obter_caminho(".env")
+if hasattr(sys, '_MEIPASS'):
+    caminho_env = os.path.join(sys._MEIPASS, ".env")
+else:
+    caminho_env = os.path.join(os.path.abspath("."), ".env")
+
 load_dotenv(dotenv_path=caminho_env)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MODELO_GROQ = "llama-3.3-70b-versatile"
