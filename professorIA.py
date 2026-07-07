@@ -189,7 +189,7 @@ def executar_chamada_groq(mensagens, temp=0.8, max_t=120):
     return completion.choices[0].message.content
 
 ########
-#FUNÇÃO RESPONSÁVEL PARA IMPEDIR COM QUE AO COMPILAR O APP USANDO python -m PyInstaller --noconsole --onefile --icon=professorIA.ico --add-data "mensagemrecebida.wav;." --add-data "clique.wav;." --add-data "conectar.wav;." --add-data "desconectar.wav;." --add-data "iniciar.wav;." --add-data "encerrar.wav;." --add-data "mensagemenviada.wav;." --add-data "intro.wav;." --add-data "professorIA.ico;." professorIA.py
+#FUNÇÃO RESPONSÁVEL PARA IMPEDIR COM QUE AO COMPILAR O APP USANDO python -m PyInstaller --noconsole --onefile --icon=professorIA.ico --add-data "mensagemrecebida.wav;." --add-data "clique.wav;." --add-data "conectar.wav;." --add-data "desconectar.wav;." --add-data "iniciar.wav;." --add-data "encerrar.wav;." --add-data "mensagemenviada.wav;." --add-data "intro.wav;." --add-data "professorIA.ico;." --add-data ".env;." professorIA.py
 #O APLICATIVO PASSE A PROCURAR PELOS ARQUIVOS COMPILADOS DENTRO DA ESTRUTURA DE DADOS DO .EXE, NÃO MAIS NA ESTRUTURA DE PASTAS DO ARQUIVO PYTHON.
 #ESSA FUNÇÃO FOI FEITA COM AUXÍLIO DE IA GENERATIVA E DOCUMENTAÇÃO OFICIAL DO COMANDO.
 def obter_caminho(arquivo):
