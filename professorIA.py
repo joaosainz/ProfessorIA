@@ -84,8 +84,11 @@ def carregar_intro():
     intro.configure(bg="#121214")
     intro.overrideredirect(True)
     #
-    tk.Label(intro, text="👨‍🏫", font=("Consolas", 50), bg="#121214", fg="white").pack(pady=(40, 5))
-    tk.Label(intro, text="ProfessorIA", font=("Consolas", 28, "bold"), bg="#121214", fg="white").pack()
+    logo_base = tk.PhotoImage(file=obter_caminho("professorIA.gif"))
+    logo_img = logo_base.subsample(2, 2) 
+    label_logo = tk.Label(intro, image=logo_img, bg="#121214")
+    label_logo.image = logo_img
+    label_logo.pack(pady=(40, 5))
     tk.Label(intro, text="Simulador Docente Baseado em IA", font=("Consolas", 12), bg="#121214", fg="#a8a8b3").pack(pady=(5, 20))
     #
     lbl_status = tk.Label(intro, text="Iniciando módulos pedagógicos...", font=("Consolas", 9, "italic"), bg="#121214", fg="#8f8f98")
@@ -134,11 +137,8 @@ def sobre_app():
     #
     sobre.update()
     #
-    sobre_titulo = tk.Label(sobre, text="👨‍🏫 ProfessorIA", font=("Consolas", 24, "bold"), bg="#121214", fg="white", pady=20)
-    sobre_titulo.pack()
-    #
     sobre_corpo = tk.Label(sobre, wraplength=500, text="O ProfessorIA© é um aplicativo simulador onde o professor pratica explicar um conteúdo e recebe crítica real sobre como foi. A IA não ensina o professor, ela faz papel de aluno. O professor digita a explicação, o aluno reage, faz perguntas, fica confuso, aprofunda.", font=("Consolas", 12, "bold"), bg="#121214", fg="white")
-    sobre_corpo.pack(pady=(5, 50))
+    sobre_corpo.pack(pady=(80, 50))
 
 def historico():
     global historico_avaliacao
@@ -193,7 +193,7 @@ def executar_chamada_groq(mensagens, temp=0.8, max_t=120):
     return completion.choices[0].message.content
 
 ########
-#FUNÇÃO RESPONSÁVEL PARA IMPEDIR COM QUE AO COMPILAR O APP USANDO python -m PyInstaller --noconsole --onefile --icon=professorIA.ico --add-data "mensagemrecebida.wav;." --add-data "clique.wav;." --add-data "conectar.wav;." --add-data "desconectar.wav;." --add-data "iniciar.wav;." --add-data "encerrar.wav;." --add-data "mensagemenviada.wav;." --add-data "intro.wav;." --add-data "professorIA.ico;." --add-data ".env;." professorIA.py
+#FUNÇÃO RESPONSÁVEL PARA IMPEDIR COM QUE AO COMPILAR O APP USANDO python -m PyInstaller --noconsole --onefile --icon=professorIA.ico --add-data "mensagemrecebida.wav;." --add-data "clique.wav;." --add-data "conectar.wav;." --add-data "desconectar.wav;." --add-data "iniciar.wav;." --add-data "encerrar.wav;." --add-data "mensagemenviada.wav;." --add-data "intro.wav;." --add-data "professorIA.ico;." --add-data ".env;." --add-data "professorIA.gif;." professorIA.py
 #O APLICATIVO PASSE A PROCURAR PELOS ARQUIVOS COMPILADOS DENTRO DA ESTRUTURA DE DADOS DO .EXE, NÃO MAIS NA ESTRUTURA DE PASTAS DO ARQUIVO PYTHON.
 #ESSA FUNÇÃO FOI FEITA COM AUXÍLIO DE IA GENERATIVA E DOCUMENTAÇÃO OFICIAL DO COMANDO.
 def obter_caminho(arquivo):
@@ -237,8 +237,6 @@ def gerar_perfil():
     btn_historico.config(state="normal", bg="#1E96FC", fg="white")
     #
     btn_entrar_aula.config(state="disabled", bg="#444449", fg="#8f8f98")
-    #
-    overlay.destroy()
 
 def iniciar_simulacao():
     global simulacao_ativa
@@ -450,8 +448,8 @@ root = tk.Tk()
 root.title("ProfessorIA - Simulador Docente")
 root.iconbitmap(obter_caminho("professorIA.ico"))
 root.configure(bg="#121214")
-largura, altura = 1172, 710
-root.minsize(1172, 710)
+largura, altura = 1172, 750
+root.minsize(1172, 750)
 tela_largura = root.winfo_screenwidth()
 tela_altura = root.winfo_screenheight()
 x = (tela_largura // 2) - (largura // 2)
@@ -465,7 +463,12 @@ root.columnconfigure(0, weight=0); root.columnconfigure(1, weight=1); root.rowco
 painel_esquerdo = tk.Frame(root, bg="#202024", width=300, height=620)
 painel_esquerdo.grid(row=0, column=0, sticky="nsew", padx=(0, 2))
 painel_esquerdo.grid_propagate(False)
-tk.Label(painel_esquerdo, text="👨‍🏫 ProfessorIA", font=("Consolas", 24, "bold"), bg="#202024", fg="white").grid(row=0, column=0, sticky="w", padx=20, pady=(30, 10))
+#
+logo_base = tk.PhotoImage(file=obter_caminho("professorIA.gif"))
+logo_img = logo_base.subsample(3, 3) 
+label = tk.Label(painel_esquerdo, image=logo_img, bg="#202024")
+label.image = logo_img
+label.grid(row=0, column=0, sticky="w", padx=20, pady=(30, 10))
 #
 tk.Label(painel_esquerdo, text="Qual o nome do professor?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=1, column=0, sticky="w", padx=20, pady=(5, 5))
 #
@@ -501,10 +504,6 @@ btn_historico.config(state="disabled", bg="#444449", fg="#8f8f98")
 btn_sobre = tk.Button(painel_esquerdo, text="📌 Sobre o App", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="flat", height=2, command=sobre_app)
 btn_sobre.grid(row=11, column=0, padx=20, pady=(0, 15), sticky="ew")
 btn_sobre.config(state="disabled", bg="#444449", fg="#8f8f98")
-#
-overlay = tk.Frame(painel_esquerdo, bg="#202024", width=300, height=700)
-overlay.place(x=0, y=250, relwidth=1, relheight=0.75)
-tk.Label(overlay, text="🔒\nDesbloqueia após entrar \nna sala de aula pela primeira vez", font=("Consolas", 11, "italic"), bg="#202024", fg="#555560", justify="center").place(relx=0.5, rely=0.3, anchor="center")
 #
 direitos = tk.Label(painel_esquerdo, text="UnB - Computação - APC 06\nGarotos de Programa", bg="#202024", fg="gray")
 direitos.place(relx=0.5, rely=1.0, anchor="s", y=-10)
