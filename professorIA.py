@@ -206,7 +206,7 @@ def obter_caminho(arquivo):
 def gerar_perfil():
     global aluno_atual, personalidade_atual, historico_contexto, interacoes_atuais, salas_de_aula
     #
-    if not nome_professor.get().strip().isalpha():
+    if not nome_professor.get().strip():
         reiniciar_aula()
         adicionar_balao_chat("Entrada inválida na sala de aula", f"Digite um nome válido para começar a aula!", "erro")
         return
@@ -249,7 +249,7 @@ def iniciar_simulacao():
     btn_entrar_aula.config(state="disabled", bg="#444449")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
     #
-    if not tema.get().strip().isalpha():
+    if not tema.get().strip():
         reiniciar_aula()
         adicionar_balao_chat("Sala de aula encerrada", f"Digite um tema válido para começar a aula!", "erro")
         return
