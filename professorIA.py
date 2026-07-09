@@ -7,6 +7,7 @@ import os
 import sys
 import time
 import datetime
+import json
 from dotenv import load_dotenv
 from groq import Groq
 import winsound
@@ -55,14 +56,55 @@ personalidades = [
 ]
 
 historico_contexto = []
-historico_avaliacao = []
-salas_de_aula = 0
 interacoes_atuais = 0
 max_interacoes = 4
 input_fechado = True
 aluno_atual = None
 personalidade_atual = None
 simulacao_ativa = False
+
+##########CRIANDO ARQUIVOS NA PASTA DOCUMENTOS DO USUÁRIO
+
+pasta_destino = os.path.join(os.path.expanduser("~"), "Documents", "professoria")
+caminho_historico = os.path.join(pasta_destino, "historico.json")
+caminho_aulas = os.path.join(pasta_destino, "aulas.json")
+caminho_nome = os.path.join(pasta_destino, "nome.json")
+
+if not os.path.exists(pasta_destino):
+    os.makedirs(pasta_destino)
+
+##########CARREGANDO OU CRIANDO HISTÓRICO
+
+if os.path.exists(caminho_historico):
+    with open(caminho_historico, "r", encoding="utf-8") as f:
+        try:
+            historico_avaliacao = json.load(f)
+        except json.JSONDecodeError:
+            historico_avaliacao = []
+else:
+    historico_avaliacao = []   
+
+##########CARREGANDO OU CRIANDO AULAS
+
+if os.path.exists(caminho_aulas):
+    with open(caminho_aulas, "r", encoding="utf-8") as f:
+        try:
+            salas_de_aula = json.load(f)
+        except json.JSONDecodeError:
+            salas_de_aula = 0
+else:
+    salas_de_aula = 0 
+
+##########CARREGANDO OU CRIANDO NOME USUÁRIO
+
+if os.path.exists(caminho_nome):
+    with open(caminho_nome, "r", encoding="utf-8") as f:
+        try:
+            nome_professor_i = json.load(f)
+        except json.JSONDecodeError:
+            nome_professor_i = " "
+else:
+    nome_professor_i = " " 
 
 ##########DEFININDO FUNÇÕES ANTES DO INÍCIO
 ##########FUNÇÕES DE JANELA
@@ -204,7 +246,7 @@ def obter_caminho(arquivo):
 ##########FUNÇÕES DE EVENTOS
 
 def gerar_perfil():
-    global aluno_atual, personalidade_atual, historico_contexto, interacoes_atuais, salas_de_aula
+    global aluno_atual, personalidade_atual, historico_contexto, interacoes_atuais, salas_de_aula, caminho_aulas
     #
     if not nome_professor.get().strip():
         reiniciar_aula()
@@ -218,6 +260,11 @@ def gerar_perfil():
     historico_contexto = []
     interacoes_atuais = 0
     salas_de_aula = salas_de_aula + 1
+    #
+    with open(caminho_aulas, "w", encoding="utf-8") as f:
+        json.dump(salas_de_aula, f, indent=4, ensure_ascii=False)
+    with open(caminho_nome, "w", encoding="utf-8") as f:
+        json.dump(nome_professor.get(), f, indent=4, ensure_ascii=False)
     #
     for child in frame_conversa.winfo_children():
         child.destroy()
@@ -340,9 +387,6 @@ def adicionar_balao_chat(remetente, texto, tipo):
     canvas_chat.configure(scrollregion=canvas_chat.bbox("all"))
     canvas_chat.yview_moveto(1.0)
 
-def adicionar_fala_aluno_e_liberar(texto):
-    adicionar_fala_aluno_e_liberar_interface(texto)
-
 def adicionar_fala_aluno_e_liberar_interface(texto):
     global input_fechado, simulacao_ativa
     #
@@ -386,7 +430,7 @@ def reiniciar_aula():
     btn_historico.config(state="disabled", bg="#444449", fg="#8f8f98")
 
 def finalizar_aula():
-    global personalidade_atual, simulacao_ativa, historico_avaliacao, historico_contexto, salas_de_aula
+    global personalidade_atual, simulacao_ativa, historico_avaliacao, historico_contexto, salas_de_aula, caminho_historico, pasta_destino
     #
     simulacao_ativa = False
     progresso.config(text="Aula Concluída! Veja a avaliação final.")
@@ -412,6 +456,9 @@ def finalizar_aula():
     "Personalidade": personalidade_atual,
     "Avaliação": critica,
     "Tema": tema.get()})
+    #
+    with open(caminho_historico, "w", encoding="utf-8") as f:
+        json.dump(historico_avaliacao, f, indent=4, ensure_ascii=False)
     root.update()
     #
     prompt_ambiental = [{
@@ -473,7 +520,8 @@ label.grid(row=0, column=0, sticky="w", padx=20, pady=(30, 10))
 tk.Label(painel_esquerdo, text="Qual o nome do professor?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=1, column=0, sticky="w", padx=20, pady=(5, 5))
 #
 nome_professor = tk.Entry(painel_esquerdo, font=("Consolas", 12), bg="#121214", fg="black", insertbackground="black", bd=1, relief="solid")
-nome_professor.insert(0, " ")
+nome_professor.insert(0, nome_professor_i)
+#
 nome_professor.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
 nome_professor.config(state="normal", fg="white", bg="#18181c")
 #
