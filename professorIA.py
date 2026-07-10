@@ -271,7 +271,7 @@ def gerar_perfil():
     #
     canvas_chat.configure(scrollregion=canvas_chat.bbox("all"))
     #
-    progresso.config(text=f"Progresso: 0 de {max_interacoes} interações — Sala de Aula {salas_de_aula}")
+    progresso.config(text=f"Sala criada — Sala de Aula {salas_de_aula}")
     #
     adicionar_balao_chat(None, f"📢 O(A) aluno(a) {aluno_atual} entrou na sala.\n\nSeu coordenador te disse que a personalidade do aluno é: \n{personalidade_atual}", "sistema")
     adicionar_balao_chat(None, f"📢 {nome_professor.get()} entrou na sala.", "sistema")
@@ -302,7 +302,7 @@ def iniciar_simulacao():
     winsound.PlaySound(obter_caminho("iniciar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
     prompt_sistema = (
         f"Você é um estudante real chamado {aluno_atual}. Sua personalidade é: {personalidade_atual}. "
-        f"Você está em uma aula com seu professor {nome_professor.get()} sobre o tema: '{tema.get()}'. "
+        f"Você tem uma dúvida sobre o tema: '{tema.get()}' e decide sanar ela com seu professor {nome_professor.get()}. "
         "Responda estritamente em português brasileiro, agindo como o aluno de verdade. "
         "Gere respostas curtas (máximo de 2 frases), simulando mensagens instantâneas de chat. "
         "Mantenha sempre suas dúvidas focadas no tema e de acordo com as falhas da sua personalidade. "
@@ -312,14 +312,14 @@ def iniciar_simulacao():
     adicionar_balao_chat(None, f"💭 {aluno_atual} está pensando em uma dúvida para iniciar a aula...", "sistema")
     root.update()
     #
-    prompt_gatilho = [{"role": "user", "content": f"Inicie a aula fazendo uma pergunta ou expondo uma dúvida inicial bem específica sobre o tema '{tema.get()}'. Lembre-se de seguir seu perfil: {personalidade_atual}. Seja breve."}]
+    prompt_gatilho = [{"role": "user", "content": f"Faça uma pergunta ou exponha uma dúvida inicial bem específica sobre o tema '{tema.get()}'. Lembre-se de seguir seu perfil: {personalidade_atual}. Seja breve."}]
     duvida_inicial = executar_chamada_groq(historico_contexto + prompt_gatilho)
     #
     historico_contexto.append({"role": "assistant", "content": duvida_inicial})
     root.after(7000, lambda: adicionar_fala_aluno_e_liberar_interface(duvida_inicial))
 
 def enviar_mensagem_professor():
-    global interacoes_atuais, input_fechado
+    global interacoes_atuais, input_fechado, aluno_atual, personalidade_atual, salas_de_aula
     #
     texto_professor = input_mensagem.get("1.0", "end-1c").strip()
     if not texto_professor or not simulacao_ativa or input_fechado == True: return
@@ -335,7 +335,7 @@ def enviar_mensagem_professor():
     input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
     #
     interacoes_atuais += 1
-    progresso.config(text=f"Progresso: {interacoes_atuais} de {max_interacoes} interações")
+    progresso.config(text=f"Progresso: {interacoes_atuais} de {max_interacoes} interações — Aluno {aluno_atual} — Professor {nome_professor_i} — Sala de Aula {salas_de_aula}")
     root.update()
     #
     if interacoes_atuais >= max_interacoes:
@@ -345,7 +345,9 @@ def enviar_mensagem_professor():
     adicionar_balao_chat(None, f"💭 {aluno_atual} está pensando...", "sistema")
     root.update()
     #
-    resposta_ia = executar_chamada_groq(historico_contexto)
+    prompt_gatilho = [{"role": "user", "content": f"Seu professor te disse: {texto_professor}, analise o histórico e prossiga a conversa: {historico_contexto}."}]
+    #
+    resposta_ia = executar_chamada_groq(prompt_gatilho)
     historico_contexto.append({"role": "assistant", "content": resposta_ia})
     ########
     #NESSA PARTE ESTAVA DANDO ERRO SEM O USO DO LAMBDA, COM AUXÍLIO DE PESQUISAS, O LAMBDA FOI IMPLEMENTADO MESMO COM DIFICULDADE DE INTERPRETAÇÃO DO QUE REALMENTE ELE FAZ
@@ -360,12 +362,12 @@ def adicionar_balao_chat(remetente, texto, tipo):
     agora = datetime.datetime.now()
     #
     if tipo == "professor":
-        balao = tk.Label(linha_frame, text=f"{remetente} - {agora.strftime('%H:%M:%S')}\n\n{texto}", font=("Consolas", 11), bg="#005c4b", fg="white", justify="left", wraplength=largura_balao, padx=12, pady=8, bd=0)
+        balao = tk.Label(linha_frame, text=f"{remetente} • {agora.strftime('%H:%M:%S')}\n\n{texto}", font=("Consolas", 11), bg="#005c4b", fg="white", justify="left", wraplength=largura_balao, padx=12, pady=8, bd=0)
         balao.pack(side="right", anchor="e")
     #
     elif tipo == "aluno":
         winsound.PlaySound(obter_caminho("mensagemrecebida.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
-        balao = tk.Label(linha_frame, text=f"{remetente} - {agora.strftime('%H:%M:%S')}\n\n{texto}", font=("Consolas", 11), bg="#202c33", fg="white", justify="left", wraplength=largura_balao, padx=12, pady=8, bd=0)
+        balao = tk.Label(linha_frame, text=f"{remetente} • {agora.strftime('%H:%M:%S')}\n\n{texto}", font=("Consolas", 11), bg="#1E4C66", fg="white", justify="left", wraplength=largura_balao, padx=12, pady=8, bd=0)
         balao.pack(side="left", anchor="w")
     #
     elif tipo == "sistema":
@@ -373,15 +375,15 @@ def adicionar_balao_chat(remetente, texto, tipo):
         balao.pack(side="top", anchor="center")
     #
     elif tipo == "avaliacao":
-        balao = tk.Label(linha_frame, text=f"📝 {remetente}\n{texto}", font=("Consolas", 11, "bold"), bg="#2c2401", fg="#e1b12c", justify="left", wraplength=int(canvas_chat.winfo_width() * 0.80), padx=12, pady=8, bd=1, relief="solid")
+        balao = tk.Label(linha_frame, text=f"📝 {remetente}\n{texto}", font=("Consolas", 11, "bold"), bg="#ad8822", fg="white", justify="left", wraplength=int(canvas_chat.winfo_width() * 0.80), padx=12, pady=8, bd=1, relief="solid")
         balao.pack(side="top", anchor="center", pady=5)
     #
     elif tipo == "ambiental":
-        balao = tk.Label(linha_frame, text=f"🌿 {remetente}\n{texto}", font=("Consolas", 11, "bold"), bg="#0d2b1a", fg="#4caf7d", justify="left", wraplength=int(canvas_chat.winfo_width() * 0.80), padx=12, pady=8, bd=1, relief="solid")
+        balao = tk.Label(linha_frame, text=f"🌿 {remetente}\n{texto}", font=("Consolas", 11, "bold"), bg="#357a58", fg="white", justify="left", wraplength=int(canvas_chat.winfo_width() * 0.80), padx=12, pady=8, bd=1, relief="solid")
         balao.pack(side="top", anchor="center", pady=5)
     #
     elif tipo == "erro":
-        balao = tk.Label(linha_frame, text=f"❌ {remetente}\n{texto}", font=("Consolas", 10, "italic"), bg="#c03434", fg="#f3f3f3", justify="left", wraplength=int(canvas_chat.winfo_width() * 0.80), padx=10, pady=5, bd=1, relief="solid")
+        balao = tk.Label(linha_frame, text=f"❌ {remetente}\n{texto}", font=("Consolas", 11, "italic"), bg="#c03434", fg="#f3f3f3", justify="left", wraplength=int(canvas_chat.winfo_width() * 0.80), padx=12, pady=8, bd=1, relief="solid")
         balao.pack(side="top", anchor="center", pady=5)
     canvas_chat.update_idletasks()
     canvas_chat.configure(scrollregion=canvas_chat.bbox("all"))
@@ -442,7 +444,7 @@ def finalizar_aula():
             f"para o aluno {aluno_atual} ({personalidade_atual}) sobre o tema '{tema.get()}'.\n"
             f"Histórico da aula: \"{historico_contexto}\"\n\n."
             f"Escreva uma crítica curta avaliando o desempenho do professor na aula."
-            f"E, para finalizar, finalize o texto obrigatoriamente com uma nota geral de 0 a 10. Exemplo: '[Nota: X/10] ...'"
+            f"E, para finalizar, finalize o texto obrigatoriamente com uma nota geral e realista de 0 a 10. Exemplo: '[Nota: X/10] ...'"
         )
     }]
     critica = executar_chamada_groq(prompt_aval, temp=0.6, max_t=400)
