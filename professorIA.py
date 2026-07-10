@@ -58,13 +58,14 @@ personalidades = [
 
 historico_contexto = []
 interacoes_atuais = 0
-max_interacoes = 4
 input_fechado = True
 aluno_atual = None
 personalidade_atual = None
 simulacao_ativa = False
 atualizacao_pendente = False
-versao = "1.0.0"
+aluno_respondeu = False
+verificacao_lista = True
+versao = "1.1.0"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
 
 ##########CRIANDO ARQUIVOS NA PASTA DOCUMENTOS DO USUÁRIO
@@ -207,7 +208,7 @@ def sobre_app():
     sobre_corpo.pack(pady=(80, 50))
 
 def historico():
-    global historico_avaliacao
+    global historico_avaliacao, caminho_historico, pasta_destino, verificacao_lista
     winsound.PlaySound(obter_caminho("clique.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
     #
     janela_historico = tk.Tk()
@@ -232,12 +233,54 @@ def historico():
     text_area.configure(yscrollcommand=scrollbar_hist.set)
     #
     texto_formatado = ""
+    #
+    verificacao_lista = True
+    #
+    if historico_avaliacao != []:
+        for dicionarios in historico_avaliacao:
+            if 'Aula' in dicionarios:
+                historico_avaliacao = historico_avaliacao
+            else:
+                verificacao_lista = False
+            if 'Nome' in dicionarios:
+                historico_avaliacao = historico_avaliacao
+            else:
+                verificacao_lista = False
+            if 'Interações' in dicionarios:
+                historico_avaliacao = historico_avaliacao
+            else:
+                verificacao_lista = False
+            if 'Tema' in dicionarios:
+                historico_avaliacao = historico_avaliacao
+            else:
+                verificacao_lista = False
+            if 'Personalidade' in dicionarios:
+                historico_avaliacao = historico_avaliacao
+            else:
+                verificacao_lista = False
+            if 'Avaliação' in dicionarios:
+                historico_avaliacao = historico_avaliacao
+            else:
+                verificacao_lista = False
+
+            if verificacao_lista == False:
+                historico_avaliacao = ["Apagado"]
+                with open(caminho_historico, "w", encoding="utf-8") as f:
+                    json.dump([], f, indent=4, ensure_ascii=False)
+                texto_formatado = "Seu histórico foi apagado devido uma atualização"
+    #
+    verificacao_lista = True
+    #
     if not historico_avaliacao:
         texto_formatado = "Nenhum histórico registrado ainda."
+    elif historico_avaliacao == ["Apagado"]:
+        texto_formatado = texto_formatado
+        historico_avaliacao = []
     else:
         for item in historico_avaliacao:
             texto_formatado += f"AULA: {item['Aula']}\n\n"
             texto_formatado += f"PROFESSOR: {item['Nome']}\n\n"
+            texto_formatado += f"INTERAÇÕES: {item['Interações']}\n\n"
             texto_formatado += f"TEMA: {item['Tema']}\n\n"
             texto_formatado += f"PERSONALIDADE: {item['Personalidade']}.\n\n"
             texto_formatado += f"AVALIAÇÃO: {item['Avaliação']}\n\n"
@@ -270,7 +313,7 @@ def obter_caminho(arquivo):
 ##########FUNÇÕES DE EVENTOS
 
 def gerar_perfil():
-    global aluno_atual, personalidade_atual, historico_contexto, interacoes_atuais, salas_de_aula, caminho_aulas
+    global aluno_atual, personalidade_atual, historico_contexto, interacoes_atuais, salas_de_aula, caminho_aula, aluno_respondeu
     #
     if not nome_professor.get().strip():
         reiniciar_aula()
@@ -283,6 +326,7 @@ def gerar_perfil():
     personalidade_atual = random.choice(personalidades)
     historico_contexto = []
     interacoes_atuais = 0
+    aluno_respondeu = False
     salas_de_aula = salas_de_aula + 1
     #
     with open(caminho_aulas, "w", encoding="utf-8") as f:
@@ -300,7 +344,12 @@ def gerar_perfil():
     adicionar_balao_chat(None, f"📢 O(A) aluno(a) {aluno_atual} entrou na sala.\n\nSeu coordenador te disse que a personalidade do aluno é: \n{personalidade_atual}", "sistema")
     adicionar_balao_chat(None, f"📢 {nome_professor.get()} entrou na sala.", "sistema")
     #
-    comecar.config(state="normal", bg="#202024", fg="#2b7a4b", relief="solid", borderwidth=1)
+    input_mensagem.config(state="normal")
+    input_mensagem.delete("1.0", tk.END)
+    input_mensagem.insert("1.0", "Digite um tema e comece a aula para digitar...")
+    input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
+    #
+    comecar.config(state="normal", text="🚀 Iniciar Simulação", bg="#202024", fg="#2b7a4b", relief="solid", borderwidth=1)
     btn_sair_aula.config(state="normal", bg="#202024", fg="#aa3a3a", relief="solid", borderwidth=1)
     tema.config(state="normal", fg="white", bg="#18181c")
     nome_professor.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
@@ -313,8 +362,22 @@ def iniciar_simulacao():
     global simulacao_ativa
     if not aluno_atual: return
     #
+    if simulacao_ativa == True:
+        input_mensagem.config(state="normal")
+        input_mensagem.delete("1.0", tk.END)
+        input_mensagem.insert("1.0", "Gerando relatório...")
+        input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
+        comecar.config(state="disabled", bg="#202024", fg="#8f8f98", text="🚀 Iniciar Simulação")
+        finalizar_aula()
+        return
+    #
+    input_mensagem.config(state="normal")
+    input_mensagem.delete("1.0", tk.END)
+    input_mensagem.insert("1.0", "Aguarde...")
+    input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
+    #
+    comecar.config(state="disabled", bg="#202024", fg="#8f8f98", text="❌ Encerrar Simulação")
     simulacao_ativa = True
-    comecar.config(state="disabled", bg="#202024", fg="#8f8f98")
     btn_entrar_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
     #
@@ -340,7 +403,8 @@ def iniciar_simulacao():
     duvida_inicial = executar_chamada_groq(historico_contexto + prompt_gatilho)
     #
     historico_contexto.append({"role": "assistant", "content": duvida_inicial})
-    root.after(7000, lambda: adicionar_fala_aluno_e_liberar_interface(duvida_inicial))
+    root.after(5000, lambda: adicionar_fala_aluno_e_liberar_interface(duvida_inicial))
+    #
 
 def enviar_mensagem_professor():
     global interacoes_atuais, input_fechado, aluno_atual, personalidade_atual, salas_de_aula
@@ -353,18 +417,15 @@ def enviar_mensagem_professor():
     adicionar_balao_chat(nome_professor.get(), texto_professor, "professor")
     historico_contexto.append({"role": "user", "content": texto_professor})
     #
+    comecar.config(state="disabled", bg="#202024", fg="#8f8f98", text="❌ Encerrar Simulação")
     input_mensagem.config(state="normal")
     input_mensagem.delete("1.0", tk.END)
     input_mensagem.insert("1.0", "Aguarde...")
     input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
     #
     interacoes_atuais += 1
-    progresso.config(text=f"Progresso: {interacoes_atuais} de {max_interacoes} interações — Aluno {aluno_atual} — Professor {nome_professor_i} — Sala de Aula {salas_de_aula}")
+    progresso.config(text=f"Progresso: {interacoes_atuais} interações — Aluno {aluno_atual} — Professor {nome_professor_i} — Sala de Aula {salas_de_aula}")
     root.update()
-    #
-    if interacoes_atuais >= max_interacoes:
-        finalizar_aula()
-        return
     #
     adicionar_balao_chat(None, f"💭 {aluno_atual} está pensando...", "sistema")
     root.update()
@@ -376,9 +437,10 @@ def enviar_mensagem_professor():
     ########
     #NESSA PARTE ESTAVA DANDO ERRO SEM O USO DO LAMBDA, COM AUXÍLIO DE PESQUISAS, O LAMBDA FOI IMPLEMENTADO MESMO COM DIFICULDADE DE INTERPRETAÇÃO DO QUE REALMENTE ELE FAZ
     #ESSA PARTE FOI FEITA COM AUXÍLIO DE IA GENERATIVA E DA DOCUMENTAÇÃO OFICIAL.
-    root.after(4000, lambda: adicionar_fala_aluno_e_liberar_interface(resposta_ia))
+    root.after(2000, lambda: adicionar_fala_aluno_e_liberar_interface(resposta_ia))
 
 def adicionar_balao_chat(remetente, texto, tipo):
+    global aluno_respondeu
     largura_balao = int(canvas_chat.winfo_width() * 0.55)
     linha_frame = tk.Frame(frame_conversa, bg="#121214")
     linha_frame.pack(fill="x", padx=10, pady=5)
@@ -393,6 +455,7 @@ def adicionar_balao_chat(remetente, texto, tipo):
         winsound.PlaySound(obter_caminho("mensagemrecebida.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
         balao = tk.Label(linha_frame, text=f"{remetente} • {agora.strftime('%H:%M:%S')}\n\n{texto}", font=("Consolas", 11), bg="#1E4C66", fg="white", justify="left", wraplength=largura_balao, padx=12, pady=8, bd=0)
         balao.pack(side="left", anchor="w")
+        aluno_respondeu = True
     #
     elif tipo == "sistema":
         balao = tk.Label(linha_frame, text=texto, font=("Consolas", 10, "italic"), bg="#18181c", fg="#a8a8b3", justify="center", wraplength=int(canvas_chat.winfo_width() * 0.80), padx=10, pady=5)
@@ -421,6 +484,7 @@ def adicionar_fala_aluno_e_liberar_interface(texto):
     #
     adicionar_balao_chat(aluno_atual, texto, "aluno")
     #
+    comecar.config(state="normal", bg="#202024", fg="#aa3a3a", text="❌ Encerrar Simulação")
     input_fechado = False
     input_mensagem.config(state="normal", fg="white", bg="#18181c")
     input_mensagem.delete("1.0", tk.END)
@@ -449,56 +513,62 @@ def reiniciar_aula():
     #
     btn_entrar_aula.config(state="normal", bg="#202024", fg="#2b7a4b")
     nome_professor.config(state="normal", fg="white", bg="#18181c")
-    comecar.config(state="disabled", bg="#202024", fg="#8f8f98")
+    comecar.config(state="disabled", text="🚀 Iniciar Simulação", bg="#202024", fg="#8f8f98")
     btn_sair_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
     btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
     btn_historico.config(state="disabled", bg="#202024", fg="#8f8f98")
 
 def finalizar_aula():
-    global personalidade_atual, simulacao_ativa, historico_avaliacao, historico_contexto, salas_de_aula, caminho_historico, pasta_destino
+    global personalidade_atual, simulacao_ativa, historico_avaliacao, historico_contexto, salas_de_aula, caminho_historico, pasta_destino, interacoes_atuais, aluno_respondeu
+    #
+    winsound.PlaySound(obter_caminho("encerrar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
+    #
+    if aluno_respondeu == False:
+        return
+    else:
+        adicionar_balao_chat(None, "🏁 A simulação foi encerrada com sucesso! Veja sua avaliação final abaixo:", "sistema")
+        prompt_aval = [{
+            "role": "user",
+            "content": (
+                f"Você é um pedagogo especialista em ensino. Avalie a seguinte sequência de respostas que o professor {nome_professor.get()} deu "
+                f"para o aluno {aluno_atual} ({personalidade_atual}) sobre o tema '{tema.get()}'.\n"
+                f"Histórico da aula: \"{historico_contexto}\"\n\n."
+                f"Escreva uma crítica curta avaliando o desempenho do professor na aula."
+                f"E, para finalizar, finalize o texto obrigatoriamente com uma nota de 0 a 10 realista sobre a atuação do professor Exemplo: '[Nota: X/10] ...'"
+            )
+        }]
+        critica = executar_chamada_groq(prompt_aval, temp=0.6, max_t=400)
+        #
+        adicionar_balao_chat("Avaliação", critica, "avaliacao")
+        #
+        historico_avaliacao.append({
+        "Aula": salas_de_aula,
+        "Nome": nome_professor.get(),
+        "Personalidade": personalidade_atual,
+        "Interações": interacoes_atuais,
+        "Avaliação": critica,
+        "Tema": tema.get()})
+        #
+        with open(caminho_historico, "w", encoding="utf-8") as f:
+            json.dump(historico_avaliacao, f, indent=4, ensure_ascii=False)
+        root.update()
+        #
+        prompt_ambiental = [{
+            "role": "user",
+            "content": (
+                f"O tema da aula foi '{tema.get()}'. "
+                f"Escreva uma curiosidade curta e surpreendente que conecte esse tema ao meio ambiente. "
+                f"Seja direto, use no máximo 3 frases.'. "
+                f"Não use listas, não use títulos extras, só o texto corrido."
+            )
+        }]
+        curiosidade = executar_chamada_groq(prompt_ambiental, temp=0.7, max_t=150)
+        adicionar_balao_chat("Meio ambiente", curiosidade, "ambiental")
+        root.update()
     #
     simulacao_ativa = False
     progresso.config(text="Aula Concluída! Veja a avaliação final.")
-    adicionar_balao_chat(None, "🏁 Limite de interações atingido. A simulação foi encerrada com sucesso! Veja sua avaliação final abaixo:", "sistema")
-    prompt_aval = [{
-        "role": "user",
-        "content": (
-            f"Você é um pedagogo especialista em ensino. Avalie a seguinte sequência de respostas que o professor {nome_professor.get()} deu "
-            f"para o aluno {aluno_atual} ({personalidade_atual}) sobre o tema '{tema.get()}'.\n"
-            f"Histórico da aula: \"{historico_contexto}\"\n\n."
-            f"Escreva uma crítica curta avaliando o desempenho do professor na aula."
-            f"E, para finalizar, finalize o texto obrigatoriamente com uma nota geral e realista de 0 a 10. Exemplo: '[Nota: X/10] ...'"
-        )
-    }]
-    critica = executar_chamada_groq(prompt_aval, temp=0.6, max_t=400)
-    #
-    adicionar_balao_chat("Avaliação", critica, "avaliacao")
-    winsound.PlaySound(obter_caminho("encerrar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
-    #
-    historico_avaliacao.append({
-    "Aula": salas_de_aula,
-    "Nome": nome_professor.get(),
-    "Personalidade": personalidade_atual,
-    "Avaliação": critica,
-    "Tema": tema.get()})
-    #
-    with open(caminho_historico, "w", encoding="utf-8") as f:
-        json.dump(historico_avaliacao, f, indent=4, ensure_ascii=False)
-    root.update()
-    #
-    prompt_ambiental = [{
-        "role": "user",
-        "content": (
-            f"O tema da aula foi '{tema.get()}'. "
-            f"Escreva uma curiosidade curta e surpreendente que conecte esse tema ao meio ambiente. "
-            f"Seja direto, use no máximo 3 frases.'. "
-            f"Não use listas, não use títulos extras, só o texto corrido."
-        )
-    }]
-    curiosidade = executar_chamada_groq(prompt_ambiental, temp=0.7, max_t=150)
-    adicionar_balao_chat("Meio ambiente", curiosidade, "ambiental")
-    root.update()
     #
     input_mensagem.config(state="normal")
     input_mensagem.delete("1.0", tk.END)
@@ -507,7 +577,7 @@ def finalizar_aula():
     #
     btn_entrar_aula.config(state="normal", bg="#202024", fg="#2b7a4b")
     nome_professor.config(state="normal", fg="white", bg="#18181c")
-    comecar.config(state="disabled", bg="#202024", fg="#8f8f98")
+    comecar.config(state="disabled", bg="#202024", fg="#8f8f98", text="🚀 Iniciar Simulação")
     btn_sair_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
     btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
