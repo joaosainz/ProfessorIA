@@ -276,22 +276,22 @@ def gerar_perfil():
     adicionar_balao_chat(None, f"📢 O(A) aluno(a) {aluno_atual} entrou na sala.\n\nSeu coordenador te disse que a personalidade do aluno é: \n{personalidade_atual}", "sistema")
     adicionar_balao_chat(None, f"📢 {nome_professor.get()} entrou na sala.", "sistema")
     #
-    comecar.config(state="normal", bg="#2b7a4b", fg="white")
-    btn_sair_aula.config(state="normal", bg="#aa3a3a", fg="white")
+    comecar.config(state="normal", bg="#202024", fg="#2b7a4b", relief="solid", borderwidth=1)
+    btn_sair_aula.config(state="normal", bg="#202024", fg="#aa3a3a", relief="solid", borderwidth=1)
     tema.config(state="normal", fg="white", bg="#18181c")
     nome_professor.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
-    btn_sobre.config(state="normal", bg="#1E96FC", fg="white")
-    btn_historico.config(state="normal", bg="#1E96FC", fg="white")
+    btn_sobre.config(state="normal", bg="#202024", fg="#1E96FC", relief="solid", borderwidth=1)
+    btn_historico.config(state="normal", bg="#202024", fg="#1E96FC", relief="solid", borderwidth=1)
     #
-    btn_entrar_aula.config(state="disabled", bg="#444449", fg="#8f8f98")
+    btn_entrar_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
 
 def iniciar_simulacao():
     global simulacao_ativa
     if not aluno_atual: return
     #
     simulacao_ativa = True
-    comecar.config(state="disabled", bg="#444449", fg="#8f8f98")
-    btn_entrar_aula.config(state="disabled", bg="#444449")
+    comecar.config(state="disabled", bg="#202024", fg="#8f8f98")
+    btn_entrar_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
     #
     if not tema.get().strip():
@@ -421,13 +421,13 @@ def reiniciar_aula():
     input_mensagem.insert("1.0", "Inicie uma aula para digitar...")
     input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
     #
-    btn_entrar_aula.config(state="normal", bg="#2b7a4b", fg="white")
+    btn_entrar_aula.config(state="normal", bg="#202024", fg="#2b7a4b")
     nome_professor.config(state="normal", fg="white", bg="#18181c")
-    comecar.config(state="disabled", bg="#444449", fg="#8f8f98")
-    btn_sair_aula.config(state="disabled", bg="#444449", fg="#8f8f98")
+    comecar.config(state="disabled", bg="#202024", fg="#8f8f98")
+    btn_sair_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
-    btn_sobre.config(state="disabled", bg="#444449", fg="#8f8f98")
-    btn_historico.config(state="disabled", bg="#444449", fg="#8f8f98")
+    btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
+    btn_historico.config(state="disabled", bg="#202024", fg="#8f8f98")
 
 def finalizar_aula():
     global personalidade_atual, simulacao_ativa, historico_avaliacao, historico_contexto, salas_de_aula, caminho_historico, pasta_destino
@@ -479,13 +479,13 @@ def finalizar_aula():
     input_mensagem.insert("1.0", "Aula encerrada.")
     input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
     #
-    btn_entrar_aula.config(state="normal", bg="#2b7a4b", fg="white")
+    btn_entrar_aula.config(state="normal", bg="#202024", fg="#2b7a4b")
     nome_professor.config(state="normal", fg="white", bg="#18181c")
-    comecar.config(state="disabled", bg="#444449", fg="#8f8f98")
-    btn_sair_aula.config(state="disabled", bg="#444449", fg="#8f8f98")
+    comecar.config(state="disabled", bg="#202024", fg="#8f8f98")
+    btn_sair_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
-    btn_sobre.config(state="disabled", bg="#444449", fg="#8f8f98")
-    btn_historico.config(state="disabled", bg="#444449", fg="#8f8f98")
+    btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
+    btn_historico.config(state="disabled", bg="#202024", fg="#8f8f98")
 
 ##########LIGANDO O APP
 carregar_intro()
@@ -495,8 +495,8 @@ root = tk.Tk()
 root.title("ProfessorIA - Simulador Docente")
 root.iconbitmap(obter_caminho("professorIA.ico"))
 root.configure(bg="#121214")
-largura, altura = 1172, 750
-root.minsize(1172, 750)
+largura, altura = 1172, 755
+root.minsize(1172, 755)
 tela_largura = root.winfo_screenwidth()
 tela_altura = root.winfo_screenheight()
 x = (tela_largura // 2) - (largura // 2)
@@ -525,7 +525,7 @@ nome_professor.insert(0, nome_professor_i)
 nome_professor.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
 nome_professor.config(state="normal", fg="white", bg="#18181c")
 #
-btn_entrar_aula = tk.Button(painel_esquerdo, text="🚪 Entrar na Sala de Aula", font=("Consolas", 12, "bold"), bg="#2b7a4b", fg="white", bd=0, relief="flat", height=2, width=26, command=gerar_perfil)
+btn_entrar_aula = tk.Button(painel_esquerdo, text="🚪 Entrar na Sala de Aula", font=("Consolas", 12, "bold"), bg="#202024", fg="#2b7a4b", bd=0, relief="solid", borderwidth=1, height=2, width=26, command=gerar_perfil)
 btn_entrar_aula.grid(row=3, column=0, padx=20, pady=(0, 15), sticky="ew")
 #
 tk.Frame(painel_esquerdo, bg="#29292e", height=1).grid(row=4, column=0, sticky="ew", padx=20, pady=(0, 20))
@@ -537,21 +537,21 @@ tema.insert(0, " ")
 tema.grid(row=7, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
 tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
 #
-comecar = tk.Button(painel_esquerdo, text="🚀 Iniciar Simulação", font=("Consolas", 12, "bold"), bg="#444449", fg="#8f8f98", bd=0, relief="flat", height=2, command=iniciar_simulacao)
+comecar = tk.Button(painel_esquerdo, text="🚀 Iniciar Simulação", font=("Consolas", 12, "bold"), bg="#202024", fg="#8f8f98", bd=0, relief="solid", borderwidth=1, height=2, command=iniciar_simulacao)
 comecar.grid(row=8, column=0, padx=20, pady=(0, 15), sticky="ew")
-comecar.config(state="disabled", bg="#444449", fg="#8f8f98")
+comecar.config(state="disabled", bg="#202024", fg="#8f8f98")
 #
-btn_sair_aula = tk.Button(painel_esquerdo, text="🏃 Sair da Sala de Aula", font=("Consolas", 12, "bold"), bg="#444449", fg="#8f8f98", bd=0, relief="flat", height=2, command=reiniciar_aula)
+btn_sair_aula = tk.Button(painel_esquerdo, text="🏃 Sair da Sala de Aula", font=("Consolas", 12, "bold"), bg="#444449", fg="#8f8f98", bd=0, relief="solid", borderwidth=1, height=2, command=reiniciar_aula)
 btn_sair_aula.grid(row=9, column=0, padx=20, pady=(0, 15), sticky="ew")
-btn_sair_aula.config(state="disabled", bg="#444449", fg="#8f8f98")
+btn_sair_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
 #
-btn_historico = tk.Button(painel_esquerdo, text="📜 Histórico", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="flat", height=2, command=historico)
+btn_historico = tk.Button(painel_esquerdo, text="📜 Histórico", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=historico)
 btn_historico.grid(row=10, column=0, padx=20, pady=(0, 15), sticky="ew")
-btn_historico.config(state="disabled", bg="#444449", fg="#8f8f98")
+btn_historico.config(state="disabled", bg="#202024", fg="#8f8f98")
 #
-btn_sobre = tk.Button(painel_esquerdo, text="📌 Sobre o App", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="flat", height=2, command=sobre_app)
+btn_sobre = tk.Button(painel_esquerdo, text="📌 Sobre o App", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=sobre_app)
 btn_sobre.grid(row=11, column=0, padx=20, pady=(0, 15), sticky="ew")
-btn_sobre.config(state="disabled", bg="#444449", fg="#8f8f98")
+btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
 #
 direitos = tk.Label(painel_esquerdo, text="UnB - Computação - APC 06\nGarotos de Programa", bg="#202024", fg="gray")
 direitos.place(relx=0.5, rely=1.0, anchor="s", y=-10)
