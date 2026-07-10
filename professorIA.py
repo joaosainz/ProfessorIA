@@ -8,6 +8,7 @@ import sys
 import time
 import datetime
 import json
+import requests
 from dotenv import load_dotenv
 from groq import Groq
 import winsound
@@ -62,6 +63,9 @@ input_fechado = True
 aluno_atual = None
 personalidade_atual = None
 simulacao_ativa = False
+atualizacao_pendente = False
+versao = "1.0.0"
+url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
 
 ##########CRIANDO ARQUIVOS NA PASTA DOCUMENTOS DO USUÁRIO
 
@@ -110,6 +114,7 @@ else:
 ##########FUNÇÕES DE JANELA
 
 def carregar_intro():
+    global versao, versao_recente, url_versao, atualizacao_pendente
     intro = tk.Tk()
     intro.title("Carregando...")
     #
@@ -151,6 +156,20 @@ def carregar_intro():
     #ESSE CÓDIGO FOI FEITO COM AUXÍLIO DE IA GENERATIVA E DOCUMENTAÇÃO OFICIAL DO MÓDULO.
     winsound.PlaySound(obter_caminho("intro.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
     #
+    headers = {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    resposta = requests.get(url_versao, headers=headers, timeout=1)
+    resposta.raise_for_status()
+    versao_recente = resposta.text.strip()
+    #
+    if versao_recente != versao:
+        atualizacao_pendente = True
+    else:
+        atualizacao_pendente = False
+    
     for i in range(1, 101):
         barra_progresso['value'] = i
         lbl_pct.config(text=f"  {i}%")
@@ -158,6 +177,11 @@ def carregar_intro():
         if i == 66: lbl_status.config(text="Preparando diário de classe...")
         intro.update()
         time.sleep(0.025)
+    #
+    if atualizacao_pendente == True:
+        lbl_status.config(text="EXISTE UMA NOVA VERSÃO PARA DOWNLOAD!", font=("Consolas", 11, "bold"), bg="#121214", fg="#8f8f98")
+        intro.update()
+        time.sleep(10.000)
     #
     intro.destroy()
 
@@ -492,119 +516,120 @@ def finalizar_aula():
 ##########LIGANDO O APP
 carregar_intro()
 
+if atualizacao_pendente == False:
 ##########INICIANDO A JANELA PRINCIPAL
-root = tk.Tk()
-root.title("ProfessorIA - Simulador Docente")
-root.iconbitmap(obter_caminho("professorIA.ico"))
-root.configure(bg="#121214")
-largura, altura = 1172, 755
-root.minsize(1172, 755)
-tela_largura = root.winfo_screenwidth()
-tela_altura = root.winfo_screenheight()
-x = (tela_largura // 2) - (largura // 2)
-y = (tela_altura // 2) - (altura // 2)
-root.geometry(f"{largura}x{altura}+{x}+{y}")
+    root = tk.Tk()
+    root.title("ProfessorIA - Simulador Docente")
+    root.iconbitmap(obter_caminho("professorIA.ico"))
+    root.configure(bg="#121214")
+    largura, altura = 1172, 755
+    root.minsize(1172, 755)
+    tela_largura = root.winfo_screenwidth()
+    tela_altura = root.winfo_screenheight()
+    x = (tela_largura // 2) - (largura // 2)
+    y = (tela_altura // 2) - (altura // 2)
+    root.geometry(f"{largura}x{altura}+{x}+{y}")
 
 ##########CONFIGURANDO APARÊNCIA NO TKINTER
-root.columnconfigure(0, weight=0); root.columnconfigure(1, weight=1); root.rowconfigure(0, weight=1)
+    root.columnconfigure(0, weight=0); root.columnconfigure(1, weight=1); root.rowconfigure(0, weight=1)
 
 ##########PAINEL ESQUERDO
-painel_esquerdo = tk.Frame(root, bg="#202024", width=300, height=620)
-painel_esquerdo.grid(row=0, column=0, sticky="nsew", padx=(0, 2))
-painel_esquerdo.grid_propagate(False)
-#
-logo_base = tk.PhotoImage(file=obter_caminho("professorIA.gif"))
-logo_img = logo_base.subsample(3, 3) 
-label = tk.Label(painel_esquerdo, image=logo_img, bg="#202024")
-label.image = logo_img
-label.grid(row=0, column=0, sticky="w", padx=20, pady=(30, 10))
-#
-tk.Label(painel_esquerdo, text="Qual o nome do professor?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=1, column=0, sticky="w", padx=20, pady=(5, 5))
-#
-nome_professor = tk.Entry(painel_esquerdo, font=("Consolas", 12), bg="#121214", fg="black", insertbackground="black", bd=1, relief="solid")
-nome_professor.insert(0, nome_professor_i)
-#
-nome_professor.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
-nome_professor.config(state="normal", fg="white", bg="#18181c")
-#
-btn_entrar_aula = tk.Button(painel_esquerdo, text="🚪 Entrar na Sala de Aula", font=("Consolas", 12, "bold"), bg="#202024", fg="#2b7a4b", bd=0, relief="solid", borderwidth=1, height=2, width=26, command=gerar_perfil)
-btn_entrar_aula.grid(row=3, column=0, padx=20, pady=(0, 15), sticky="ew")
-#
-tk.Frame(painel_esquerdo, bg="#29292e", height=1).grid(row=4, column=0, sticky="ew", padx=20, pady=(0, 20))
-tk.Label(painel_esquerdo, text="Configuração da Aula", font=("Consolas", 16, "bold"), bg="#202024", fg="#e1e1e6").grid(row=5, column=0, sticky="w", padx=20, pady=(10, 20))
-tk.Label(painel_esquerdo, text="Qual o tema/conceito da aula?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=6, column=0, sticky="w", padx=20, pady=(5, 5))
-#
-tema = tk.Entry(painel_esquerdo, font=("Consolas", 12), bg="#121214", fg="black", insertbackground="black", bd=1, relief="solid")
-tema.insert(0, " ")
-tema.grid(row=7, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
-tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
-#
-comecar = tk.Button(painel_esquerdo, text="🚀 Iniciar Simulação", font=("Consolas", 12, "bold"), bg="#202024", fg="#8f8f98", bd=0, relief="solid", borderwidth=1, height=2, command=iniciar_simulacao)
-comecar.grid(row=8, column=0, padx=20, pady=(0, 15), sticky="ew")
-comecar.config(state="disabled", bg="#202024", fg="#8f8f98")
-#
-btn_sair_aula = tk.Button(painel_esquerdo, text="🏃 Sair da Sala de Aula", font=("Consolas", 12, "bold"), bg="#444449", fg="#8f8f98", bd=0, relief="solid", borderwidth=1, height=2, command=reiniciar_aula)
-btn_sair_aula.grid(row=9, column=0, padx=20, pady=(0, 15), sticky="ew")
-btn_sair_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
-#
-btn_historico = tk.Button(painel_esquerdo, text="📜 Histórico", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=historico)
-btn_historico.grid(row=10, column=0, padx=20, pady=(0, 15), sticky="ew")
-btn_historico.config(state="disabled", bg="#202024", fg="#8f8f98")
-#
-btn_sobre = tk.Button(painel_esquerdo, text="📌 Sobre o App", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=sobre_app)
-btn_sobre.grid(row=11, column=0, padx=20, pady=(0, 15), sticky="ew")
-btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
-#
-direitos = tk.Label(painel_esquerdo, text="UnB - Computação - APC 06\nGarotos de Programa", bg="#202024", fg="gray")
-direitos.place(relx=0.5, rely=1.0, anchor="s", y=-10)
+    painel_esquerdo = tk.Frame(root, bg="#202024", width=300, height=620)
+    painel_esquerdo.grid(row=0, column=0, sticky="nsew", padx=(0, 2))
+    painel_esquerdo.grid_propagate(False)
+    #
+    logo_base = tk.PhotoImage(file=obter_caminho("professorIA.gif"))
+    logo_img = logo_base.subsample(3, 3) 
+    label = tk.Label(painel_esquerdo, image=logo_img, bg="#202024")
+    label.image = logo_img
+    label.grid(row=0, column=0, sticky="w", padx=20, pady=(30, 10))
+    #
+    tk.Label(painel_esquerdo, text="Qual o nome do professor?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=1, column=0, sticky="w", padx=20, pady=(5, 5))
+    #
+    nome_professor = tk.Entry(painel_esquerdo, font=("Consolas", 12), bg="#121214", fg="black", insertbackground="black", bd=1, relief="solid")
+    nome_professor.insert(0, nome_professor_i)
+    #
+    nome_professor.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
+    nome_professor.config(state="normal", fg="white", bg="#18181c")
+    #
+    btn_entrar_aula = tk.Button(painel_esquerdo, text="🚪 Entrar na Sala de Aula", font=("Consolas", 12, "bold"), bg="#202024", fg="#2b7a4b", bd=0, relief="solid", borderwidth=1, height=2, width=26, command=gerar_perfil)
+    btn_entrar_aula.grid(row=3, column=0, padx=20, pady=(0, 15), sticky="ew")
+    #
+    tk.Frame(painel_esquerdo, bg="#29292e", height=1).grid(row=4, column=0, sticky="ew", padx=20, pady=(0, 20))
+    tk.Label(painel_esquerdo, text="Configuração da Aula", font=("Consolas", 16, "bold"), bg="#202024", fg="#e1e1e6").grid(row=5, column=0, sticky="w", padx=20, pady=(10, 20))
+    tk.Label(painel_esquerdo, text="Qual o tema/conceito da aula?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=6, column=0, sticky="w", padx=20, pady=(5, 5))
+    #
+    tema = tk.Entry(painel_esquerdo, font=("Consolas", 12), bg="#121214", fg="black", insertbackground="black", bd=1, relief="solid")
+    tema.insert(0, " ")
+    tema.grid(row=7, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
+    tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
+    #
+    comecar = tk.Button(painel_esquerdo, text="🚀 Iniciar Simulação", font=("Consolas", 12, "bold"), bg="#202024", fg="#8f8f98", bd=0, relief="solid", borderwidth=1, height=2, command=iniciar_simulacao)
+    comecar.grid(row=8, column=0, padx=20, pady=(0, 15), sticky="ew")
+    comecar.config(state="disabled", bg="#202024", fg="#8f8f98")
+    #
+    btn_sair_aula = tk.Button(painel_esquerdo, text="🏃 Sair da Sala de Aula", font=("Consolas", 12, "bold"), bg="#444449", fg="#8f8f98", bd=0, relief="solid", borderwidth=1, height=2, command=reiniciar_aula)
+    btn_sair_aula.grid(row=9, column=0, padx=20, pady=(0, 15), sticky="ew")
+    btn_sair_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
+    #
+    btn_historico = tk.Button(painel_esquerdo, text="📜 Histórico", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=historico)
+    btn_historico.grid(row=10, column=0, padx=20, pady=(0, 15), sticky="ew")
+    btn_historico.config(state="disabled", bg="#202024", fg="#8f8f98")
+    #
+    btn_sobre = tk.Button(painel_esquerdo, text="📌 Sobre o App", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=sobre_app)
+    btn_sobre.grid(row=11, column=0, padx=20, pady=(0, 15), sticky="ew")
+    btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
+    #
+    direitos = tk.Label(painel_esquerdo, text="UnB - Computação - APC 06\nGarotos de Programa", bg="#202024", fg="gray")
+    direitos.place(relx=0.5, rely=1.0, anchor="s", y=-10)
 
 ##########PAINEL DIREITO
-painel_direito = tk.Frame(root, bg="#121214")
-painel_direito.grid(row=0, column=1, sticky="nsew", padx=40, pady=30)
-painel_direito.columnconfigure(0, weight=1); painel_direito.rowconfigure(1, weight=1)
-#
-tk.Label(painel_direito, text="Sala de Aula Virtual", font=("Consolas", 28, "bold"), bg="#121214", fg="white").grid(row=0, column=0, sticky="w", pady=(0, 15))
-#
-area_chat = tk.Frame(painel_direito, bg="#202024", bd=1, relief="solid")
-area_chat.grid(row=1, column=0, sticky="nsew")
-area_chat.columnconfigure(0, weight=1); area_chat.rowconfigure(1, weight=1)
-#
-progresso = tk.Label(area_chat, text="Sala de aula vazia...", font=("Consolas", 11), bg="#202024", fg="#a8a8b3")
-progresso.grid(row=0, column=0, sticky="w", padx=20, pady=15)
-#
+    painel_direito = tk.Frame(root, bg="#121214")
+    painel_direito.grid(row=0, column=1, sticky="nsew", padx=40, pady=30)
+    painel_direito.columnconfigure(0, weight=1); painel_direito.rowconfigure(1, weight=1)
+    #
+    tk.Label(painel_direito, text="Sala de Aula Virtual", font=("Consolas", 28, "bold"), bg="#121214", fg="white").grid(row=0, column=0, sticky="w", pady=(0, 15))
+    #
+    area_chat = tk.Frame(painel_direito, bg="#202024", bd=1, relief="solid")
+    area_chat.grid(row=1, column=0, sticky="nsew")
+    area_chat.columnconfigure(0, weight=1); area_chat.rowconfigure(1, weight=1)
+    #
+    progresso = tk.Label(area_chat, text="Sala de aula vazia...", font=("Consolas", 11), bg="#202024", fg="#a8a8b3")
+    progresso.grid(row=0, column=0, sticky="w", padx=20, pady=15)
+    #
 ########
 #CONFIGURAÇÕES RESPONSÁVEIS POR CONFIGURAR A ÁREA DE CHAT DO PROGRAMA, O TKINTER NÃO POSSUI SCROLLBAR NATIVA PARA A NECESSIDADE, SENDO MUITO DIFÍCIL IMPLEMENTAR
 #ESSA SEÇÃO FOI FEITA COM AUXÍLIO DE IA GENERATIVA E DOCUMENTAÇÃO OFICIAL DO MÓDULO.
-canvas_chat = tk.Canvas(area_chat, bg="#121214", bd=0, highlightthickness=0)
-canvas_chat.grid(row=1, column=0, sticky="nsew", padx=(20, 5), pady=(0, 20))
-#
-scrollbar = ttk.Scrollbar(area_chat, orient="vertical", command=canvas_chat.yview)
-scrollbar.grid(row=1, column=1, sticky="ns", pady=(0, 20), padx=(0, 5))
-#
-canvas_chat.configure(yscrollcommand=scrollbar.set)
-frame_conversa = tk.Frame(canvas_chat, bg="#121214")
-canvas_chat.create_window((0, 0), window=frame_conversa, anchor="nw", width=1)
-frame_conversa.bind("<Configure>", lambda e: canvas_chat.configure(scrollregion=canvas_chat.bbox("all")))
-canvas_chat.bind("<Configure>", configurar_scroll_largura)
-#
-frame_input = tk.Frame(painel_direito, bg="#202024")
-frame_input.grid(row=2, column=0, sticky="ew", pady=(15, 0))
-frame_input.columnconfigure(0, weight=1)
-#
-input_mensagem = tk.Text(frame_input, font=("Consolas", 12), bg="#202024", fg="#8f8f98", bd=0, insertbackground="white", height=3, wrap="word", padx=10, pady=10)
-input_mensagem.insert("1.0", "Inicie uma aula para digitar...")
-input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
-input_mensagem.grid(row=0, column=0, sticky="ew")
-#
-scrollbar_input = ttk.Scrollbar(frame_input, orient="vertical", command=input_mensagem.yview)
-scrollbar_input.grid(row=0, column=1, sticky="ns")
-input_mensagem.configure(yscrollcommand=scrollbar_input.set)
-#
-input_mensagem.bind("<Return>", lambda event: (enviar_mensagem_professor(), "break")[1])
-input_mensagem.bind("<Shift-Return>", lambda event: None)
+    canvas_chat = tk.Canvas(area_chat, bg="#121214", bd=0, highlightthickness=0)
+    canvas_chat.grid(row=1, column=0, sticky="nsew", padx=(20, 5), pady=(0, 20))
+    #
+    scrollbar = ttk.Scrollbar(area_chat, orient="vertical", command=canvas_chat.yview)
+    scrollbar.grid(row=1, column=1, sticky="ns", pady=(0, 20), padx=(0, 5))
+    #
+    canvas_chat.configure(yscrollcommand=scrollbar.set)
+    frame_conversa = tk.Frame(canvas_chat, bg="#121214")
+    canvas_chat.create_window((0, 0), window=frame_conversa, anchor="nw", width=1)
+    frame_conversa.bind("<Configure>", lambda e: canvas_chat.configure(scrollregion=canvas_chat.bbox("all")))
+    canvas_chat.bind("<Configure>", configurar_scroll_largura)
+    #
+    frame_input = tk.Frame(painel_direito, bg="#202024")
+    frame_input.grid(row=2, column=0, sticky="ew", pady=(15, 0))
+    frame_input.columnconfigure(0, weight=1)
+    #
+    input_mensagem = tk.Text(frame_input, font=("Consolas", 12), bg="#202024", fg="#8f8f98", bd=0, insertbackground="white", height=3, wrap="word", padx=10, pady=10)
+    input_mensagem.insert("1.0", "Inicie uma aula para digitar...")
+    input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
+    input_mensagem.grid(row=0, column=0, sticky="ew")
+    #
+    scrollbar_input = ttk.Scrollbar(frame_input, orient="vertical", command=input_mensagem.yview)
+    scrollbar_input.grid(row=0, column=1, sticky="ns")
+    input_mensagem.configure(yscrollcommand=scrollbar_input.set)
+    #
+    input_mensagem.bind("<Return>", lambda event: (enviar_mensagem_professor(), "break")[1])
+    input_mensagem.bind("<Shift-Return>", lambda event: None)
 
 ##########LOOP DO ROOT
-root.mainloop()
+    root.mainloop()
 
 ##########FIM DO CÓDIGO
 
