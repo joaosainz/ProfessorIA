@@ -1,5 +1,6 @@
 <div align="center">
-  <img width="680" height="240" alt="professorIA" src="https://github.com/user-attachments/assets/dc6dc8e4-13f2-427b-bfd2-13d2af888c37" />
+  <img width="680" height="240" alt="professorIA" src="https://github.com/user-attachments/assets/0c7c780e-6662-41a7-9503-9c278b5652de" />
+
   <p><b>O seu simulador de sala de aula focado na prática docente.</b></p>
 
   <img src="https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow?style=for-the-badge" alt="Status">
