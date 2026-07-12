@@ -9,6 +9,7 @@ import time
 import datetime
 import json
 import requests
+import webbrowser
 from dotenv import load_dotenv
 from groq import Groq
 import winsound
@@ -65,7 +66,7 @@ simulacao_ativa = False
 atualizacao_pendente = False
 aluno_respondeu = False
 verificacao_lista = True
-versao = "1.1.0"
+versao = "1.1.1"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
 
 ##########CRIANDO ARQUIVOS NA PASTA DOCUMENTOS DO USUÁRIO
@@ -183,6 +184,7 @@ def carregar_intro():
         lbl_status.config(text="EXISTE UMA NOVA VERSÃO PARA DOWNLOAD!", font=("Consolas", 11, "bold"), bg="#121214", fg="#8f8f98")
         intro.update()
         time.sleep(10.000)
+        webbrowser.open("https://github.com/joaosainz/ProfessorIA/releases/tag/Windows")
     #
     intro.destroy()
 
