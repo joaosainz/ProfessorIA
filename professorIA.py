@@ -67,7 +67,7 @@ simulacao_ativa = False
 atualizacao_pendente = False
 aluno_respondeu = False
 verificacao_lista = True
-versao = "1.2.1"
+versao = "1.2.2"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
 url_download = "https://github.com/joaosainz/ProfessorIA/releases/download/Windows/ProfessorIA.exe"
 
@@ -118,7 +118,7 @@ else:
 ##########FUNÇÕES DE JANELA
 
 def carregar_intro():
-    global versao, versao_recente, url_versao, atualizacao_pendente, caminho
+    global versao, versao_recente, url_versao, atualizacao_pendente
     intro = tk.Tk()
     intro.title("Carregando...")
     #
@@ -160,7 +160,7 @@ def carregar_intro():
     else:
         pasta_atual = os.path.dirname(os.path.abspath(__file__))
     time.sleep(2.000)
-    caminho_do_arquivo = os.path.join(pasta_atual, "ProfessorIAantigo.exe")
+    caminho_do_arquivo = os.path.join(pasta_atual, "DeletarProfessorIA.exe")
     if os.path.exists(caminho_do_arquivo):
         os.remove(caminho_do_arquivo)
     #
@@ -195,14 +195,13 @@ def carregar_intro():
         if getattr(sys, 'frozen', False):
             caminho_atual = sys.executable
             pasta = os.path.dirname(caminho_atual)
-            caminho_novo = os.path.join(pasta, "ProfessorIAantigo.exe")
+            caminho_novo = os.path.join(pasta, "DeletarProfessorIA.exe")
             os.rename(caminho_atual, caminho_novo) 
         #
         lbl_status.config(text="Baixando nova versão...", bg="#121214", fg="#8f8f98")
         intro.update()
         time.sleep(1)
-        caminho = os.path.abspath("Professor_IA.exe")
-        urllib.request.urlretrieve(url_download, "Professor_IA.exe")
+        urllib.request.urlretrieve(url_download, "ProfessorIA.exe")
         #
         for i in range(1, 101):
             barra_progresso['value'] = i
@@ -726,9 +725,6 @@ if atualizacao_pendente == False:
 
 ##########LOOP DO ROOT
     root.mainloop()
-#
-if atualizacao_pendente == True:
-    subprocess.run([caminho], cwd=os.path.dirname(caminho), capture_output=True, text=True)
 
 ##########FIM DO CÓDIGO
 
