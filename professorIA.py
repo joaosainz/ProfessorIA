@@ -9,7 +9,8 @@ import time
 import datetime
 import json
 import requests
-import webbrowser
+import urllib.request
+import subprocess
 from dotenv import load_dotenv
 from groq import Groq
 import winsound
@@ -68,6 +69,7 @@ aluno_respondeu = False
 verificacao_lista = True
 versao = "1.1.1"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
+url_download = "https://github.com/joaosainz/ProfessorIA/releases/download/Windows/ProfessorIA.exe"
 
 ##########CRIANDO ARQUIVOS NA PASTA DOCUMENTOS DO USUÁRIO
 
@@ -153,6 +155,16 @@ def carregar_intro():
     lbl_pct = tk.Label(intro, text="  0%", font=("Consolas", 9, "bold"), bg="#121214", fg="#2b7a4b", width=5)
     lbl_pct.pack()
     #
+    if getattr(sys, 'frozen', False):
+        pasta_atual = os.path.dirname(sys.executable)
+    else:
+        pasta_atual = os.path.dirname(os.path.abspath(__file__))
+
+    caminho_do_arquivo = os.path.join(pasta_atual, "ProfessorIAantigo.exe")
+    if os.path.exists(caminho_do_arquivo):
+        time.sleep(1)
+        os.remove(caminho_do_arquivo)
+    #
     ########
     #CÓDIGO RESPONSÁVEL POR INICIAR UM ÁUDIO NO WINDOWS USANDO O MÓDULO WINSOUND
     #ESSE CÓDIGO FOI FEITO COM AUXÍLIO DE IA GENERATIVA E DOCUMENTAÇÃO OFICIAL DO MÓDULO.
@@ -181,10 +193,24 @@ def carregar_intro():
         time.sleep(0.025)
     #
     if atualizacao_pendente == True:
-        lbl_status.config(text="EXISTE UMA NOVA VERSÃO PARA DOWNLOAD!", font=("Consolas", 11, "bold"), bg="#121214", fg="#8f8f98")
+        if getattr(sys, 'frozen', False):
+            caminho_atual = sys.executable
+            pasta = os.path.dirname(caminho_atual)
+            caminho_novo = os.path.join(pasta, "ProfessorIAantigo.exe")
+            os.rename(caminho_atual, caminho_novo) 
+        #
+        lbl_status.config(text="Baixando nova versão...", bg="#121214", fg="#8f8f98")
         intro.update()
-        time.sleep(10.000)
-        webbrowser.open("https://github.com/joaosainz/ProfessorIA/releases/tag/Windows")
+        caminho = os.path.abspath("Professor_IA.exe")
+        urllib.request.urlretrieve(url_download, "Professor_IA.exe")
+        #
+        for i in range(1, 101):
+            barra_progresso['value'] = i
+            lbl_pct.config(text=f"  {i}%")
+            intro.update()
+            time.sleep(0.1)
+        #
+        subprocess.run([caminho], cwd=os.path.dirname(caminho), capture_output=True, text=True)
     #
     intro.destroy()
 
