@@ -67,7 +67,7 @@ simulacao_ativa = False
 atualizacao_pendente = False
 aluno_respondeu = False
 verificacao_lista = True
-versao = "1.2.0"
+versao = "1.2.1"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
 url_download = "https://github.com/joaosainz/ProfessorIA/releases/download/Windows/ProfessorIA.exe"
 
@@ -118,7 +118,7 @@ else:
 ##########FUNÇÕES DE JANELA
 
 def carregar_intro():
-    global versao, versao_recente, url_versao, atualizacao_pendente
+    global versao, versao_recente, url_versao, atualizacao_pendente, caminho
     intro = tk.Tk()
     intro.title("Carregando...")
     #
@@ -159,10 +159,9 @@ def carregar_intro():
         pasta_atual = os.path.dirname(sys.executable)
     else:
         pasta_atual = os.path.dirname(os.path.abspath(__file__))
-
+    time.sleep(2.000)
     caminho_do_arquivo = os.path.join(pasta_atual, "ProfessorIAantigo.exe")
     if os.path.exists(caminho_do_arquivo):
-        time.sleep(1)
         os.remove(caminho_do_arquivo)
     #
     ########
@@ -201,6 +200,7 @@ def carregar_intro():
         #
         lbl_status.config(text="Baixando nova versão...", bg="#121214", fg="#8f8f98")
         intro.update()
+        time.sleep(1)
         caminho = os.path.abspath("Professor_IA.exe")
         urllib.request.urlretrieve(url_download, "Professor_IA.exe")
         #
@@ -209,8 +209,6 @@ def carregar_intro():
             lbl_pct.config(text=f"  {i}%")
             intro.update()
             time.sleep(0.1)
-        #
-        subprocess.run([caminho], cwd=os.path.dirname(caminho), capture_output=True, text=True)
     #
     intro.destroy()
 
@@ -728,6 +726,9 @@ if atualizacao_pendente == False:
 
 ##########LOOP DO ROOT
     root.mainloop()
+#
+if atualizacao_pendente == True:
+    subprocess.run([caminho], cwd=os.path.dirname(caminho), capture_output=True, text=True)
 
 ##########FIM DO CÓDIGO
 
