@@ -6,11 +6,11 @@ import random
 import os
 import sys
 import time
-import datetime
+from datetime import datetime
 import json
 import requests
 import urllib.request
-import subprocess
+import shutil
 from dotenv import load_dotenv
 from groq import Groq
 import winsound
@@ -24,7 +24,7 @@ else:
 
 load_dotenv(dotenv_path=caminho_env)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-MODELO_GROQ = "llama-3.3-70b-versatile"
+MODELO_GROQ = "groq/compound"
 cliente_groq = Groq(api_key=GROQ_API_KEY)
 
 ##########LISTAS E VARIÁVEIS INICIAIS
@@ -67,7 +67,7 @@ simulacao_ativa = False
 atualizacao_pendente = False
 aluno_respondeu = False
 verificacao_lista = True
-versao = "1.2.2"
+versao = "1.3.0"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
 url_download = "https://github.com/joaosainz/ProfessorIA/releases/download/Windows/ProfessorIA.exe"
 
@@ -161,8 +161,15 @@ def carregar_intro():
         pasta_atual = os.path.dirname(os.path.abspath(__file__))
     time.sleep(2.000)
     caminho_do_arquivo = os.path.join(pasta_atual, "DeletarProfessorIA.exe")
+    pasta_usuario = os.path.expanduser("~") 
+    pasta_destino = os.path.join(pasta_usuario, "Documents", "professoria", "versoesantigas")
+
     if os.path.exists(caminho_do_arquivo):
-        os.remove(caminho_do_arquivo)
+        agora = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        novo_nome = f"SUBSTITUIDO EM {agora}.exe"
+        caminho_destino = os.path.join(pasta_destino, novo_nome)
+        os.makedirs(pasta_destino, exist_ok=True)
+        shutil.move(caminho_do_arquivo, caminho_destino)
     #
     ########
     #CÓDIGO RESPONSÁVEL POR INICIAR UM ÁUDIO NO WINDOWS USANDO O MÓDULO WINSOUND
@@ -191,23 +198,37 @@ def carregar_intro():
         intro.update()
         time.sleep(0.025)
     #
+    ########ATUALIZADOR AUTOMÁTICO
     if atualizacao_pendente == True:
-        if getattr(sys, 'frozen', False):
-            caminho_atual = sys.executable
-            pasta = os.path.dirname(caminho_atual)
-            caminho_novo = os.path.join(pasta, "DeletarProfessorIA.exe")
-            os.rename(caminho_atual, caminho_novo) 
-        #
+    ########BAIXANDO NOVA VERSÃO
         lbl_status.config(text="Baixando nova versão...", bg="#121214", fg="#8f8f98")
         intro.update()
         time.sleep(1)
-        urllib.request.urlretrieve(url_download, "ProfessorIA.exe")
-        #
+        urllib.request.urlretrieve(url_download, f"ProfessorIA_{versao_recente}.exe")
+    #
         for i in range(1, 101):
             barra_progresso['value'] = i
             lbl_pct.config(text=f"  {i}%")
             intro.update()
             time.sleep(0.1)
+    #########MOVENDO VERSÃO ANTIGA PARA UMA PASTA DO PROGRAMA
+        if getattr(sys, 'frozen', False):
+            caminho_atual = sys.executable
+            pasta_atual = os.path.dirname(caminho_atual)
+    
+            caminho_temporario = os.path.join(pasta_atual, "DeletarProfessorIA.exe")
+            os.rename(caminho_atual, caminho_temporario) 
+            time.sleep(2)
+    
+            pasta_usuario = os.path.expanduser("~") 
+            pasta_destino = os.path.join(pasta_usuario, "Documents", "professoria", "versoesantigas")
+            os.makedirs(pasta_destino, exist_ok=True)
+    
+            if os.path.exists(caminho_temporario):
+                agora = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+                novo_nome = f"SUBSTITUIDO EM {agora}.exe"
+                caminho_destino = os.path.join(pasta_destino, novo_nome)
+                shutil.move(caminho_temporario, caminho_destino)
     #
     intro.destroy()
 
@@ -462,7 +483,7 @@ def enviar_mensagem_professor():
     ########
     #NESSA PARTE ESTAVA DANDO ERRO SEM O USO DO LAMBDA, COM AUXÍLIO DE PESQUISAS, O LAMBDA FOI IMPLEMENTADO MESMO COM DIFICULDADE DE INTERPRETAÇÃO DO QUE REALMENTE ELE FAZ
     #ESSA PARTE FOI FEITA COM AUXÍLIO DE IA GENERATIVA E DA DOCUMENTAÇÃO OFICIAL.
-    root.after(2000, lambda: adicionar_fala_aluno_e_liberar_interface(resposta_ia))
+    root.after(3000, lambda: adicionar_fala_aluno_e_liberar_interface(resposta_ia))
 
 def adicionar_balao_chat(remetente, texto, tipo):
     global aluno_respondeu
