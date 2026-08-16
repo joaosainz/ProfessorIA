@@ -6,7 +6,7 @@ import random
 import os
 import sys
 import time
-from datetime import datetime
+import datetime
 import json
 import requests
 import urllib.request
@@ -470,7 +470,7 @@ def enviar_mensagem_professor():
     input_mensagem.config(state="disabled", bg="#202024", fg="#8f8f98")
     #
     interacoes_atuais += 1
-    progresso.config(text=f"Progresso: {interacoes_atuais} interações — Aluno {aluno_atual} — Professor {nome_professor_i} — Sala de Aula {salas_de_aula}")
+    progresso.config(text=f"Progresso: {interacoes_atuais} interações — Aluno {aluno_atual} — Professor {nome_professor.get()} — Sala de Aula {salas_de_aula}")
     root.update()
     #
     adicionar_balao_chat(None, f"💭 {aluno_atual} está pensando...", "sistema")
