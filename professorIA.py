@@ -67,7 +67,7 @@ simulacao_ativa = False
 atualizacao_pendente = False
 aluno_respondeu = False
 verificacao_lista = True
-versao = "1.3.0"
+versao = "1.3.1"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
 url_download = "https://github.com/joaosainz/ProfessorIA/releases/download/Windows/ProfessorIA.exe"
 
