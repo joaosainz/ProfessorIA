@@ -6,7 +6,7 @@ import random
 import os
 import sys
 import time
-import datetime
+from datetime import datetime
 import json
 import requests
 import urllib.request
@@ -67,7 +67,7 @@ simulacao_ativa = False
 atualizacao_pendente = False
 aluno_respondeu = False
 verificacao_lista = True
-versao = "1.3.1"
+versao = "1.3.2"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
 url_download = "https://github.com/joaosainz/ProfessorIA/releases/download/Windows/ProfessorIA.exe"
 
@@ -491,7 +491,7 @@ def adicionar_balao_chat(remetente, texto, tipo):
     linha_frame = tk.Frame(frame_conversa, bg="#121214")
     linha_frame.pack(fill="x", padx=10, pady=5)
     #
-    agora = datetime.datetime.now()
+    agora = datetime.now()
     #
     if tipo == "professor":
         balao = tk.Label(linha_frame, text=f"{remetente} • {agora.strftime('%H:%M:%S')}\n\n{texto}", font=("Consolas", 11), bg="#005c4b", fg="white", justify="left", wraplength=largura_balao, padx=12, pady=8, bd=0)
