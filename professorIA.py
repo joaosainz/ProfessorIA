@@ -67,7 +67,7 @@ simulacao_ativa = False
 atualizacao_pendente = False
 aluno_respondeu = False
 verificacao_lista = True
-versao = "1.3.2"
+versao = "1.3.3"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
 url_download = "https://github.com/joaosainz/ProfessorIA/releases/download/Windows/ProfessorIA.exe"
 
@@ -434,12 +434,12 @@ def iniciar_simulacao():
     #
     winsound.PlaySound(obter_caminho("iniciar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
     prompt_sistema = (
-        f"Você é um estudante real chamado {aluno_atual}. Sua personalidade é: {personalidade_atual}. "
-        f"Você tem uma dúvida sobre o tema: '{tema.get()}' e decide sanar ela com seu professor {nome_professor.get()}. "
-        "Responda estritamente em português brasileiro, agindo como o aluno de verdade. "
-        "Gere respostas curtas (máximo de 2 frases), simulando mensagens instantâneas de chat. "
+        f"Você é um estudante virtual chamado {aluno_atual}. Sua personalidade é: {personalidade_atual}. "
+        f"Faça uma dúvida sobre o tema: '{tema.get()}' e diga para o seu professor: {nome_professor.get()}. "
+        "Responda estritamente em português brasileiro, agindo como o aluno de verdade."
+        "Gere respostas curtas, simulando mensagens instantâneas de chat."
         "Mantenha sempre suas dúvidas focadas no tema e de acordo com as falhas da sua personalidade. "
-        "Nunca saia do personagem e não dê respostas prontas de IA."
+        "Nunca saia do personagem (aluno) e não dê respostas prontas de IA."
     )
     historico_contexto.append({"role": "system", "content": prompt_sistema})
     adicionar_balao_chat(None, f"💭 {aluno_atual} está pensando em uma dúvida para iniciar a aula...", "sistema")
@@ -476,7 +476,7 @@ def enviar_mensagem_professor():
     adicionar_balao_chat(None, f"💭 {aluno_atual} está pensando...", "sistema")
     root.update()
     #
-    prompt_gatilho = [{"role": "user", "content": f"Seu professor te disse: {texto_professor}, analise o histórico e prossiga a conversa: {historico_contexto}."}]
+    prompt_gatilho = [{"role": "user", "content": f"Seu professor te disse: {texto_professor}, analise o histórico e prossiga a conversa de maneira natural: {historico_contexto}."}]
     #
     resposta_ia = executar_chamada_groq(prompt_gatilho)
     historico_contexto.append({"role": "assistant", "content": resposta_ia})
