@@ -10,13 +10,13 @@
 
 ---
 
-## 💡 Sobre o Projeto
+## Sobre o Projeto
 
 Ensinar é uma arte, e toda arte exige prática. O **ProfessorIA** é um aplicativo simulador revolucionário onde **o professor é o protagonista**. Ao contrário de ferramentas tradicionais onde a Inteligência Artificial age como um tutor que detém todo o conhecimento, aqui os papéis se invertem: **a IA assume o papel do aluno.**
 
 O objetivo é proporcionar um ambiente seguro e dinâmico para que professores, educadores e palestrantes possam testar sua didática, validar exemplos e refinar suas explicações antes de entrarem em uma sala de aula real.
 
-## ✨ Como Funciona?
+## Como Funciona?
 
 A dinâmica é simples e desafiadora:
 1. **Você define o tema:** Informe qual conceito será abordado na aula.
@@ -29,7 +29,7 @@ A dinâmica é simples e desafiadora:
 
 O ProfessorIA não julga com notas, ele reage com comportamento, garantindo um feedback orgânico e imersivo.
 
-## 🚀 Principais Funcionalidades
+## Principais Funcionalidades
 
 * 🧠 **Simulação Comportamental:** Alunos virtuais com diferentes níveis de compreensão e curiosidade.
 * 💬 **Chat em Tempo Real:** Interface limpa e minimalista focada na troca de mensagens entre docente e discente.
@@ -39,7 +39,7 @@ O ProfessorIA não julga com notas, ele reage com comportamento, garantindo um f
 
 ---
 
-## 📥 Instalação e Uso (Versão Executável)
+## Instalação e Uso
 
 Você não precisa ser um programador para usar o ProfessorIA. Preparamos uma versão pronta para rodar no seu Windows!
 
@@ -49,7 +49,7 @@ Você não precisa ser um programador para usar o ProfessorIA. Preparamos uma ve
 
 ---
 
-## 💻 Para Desenvolvedores (Rodando do Código-Fonte)
+## Para Desenvolvedores
 
 Se você quiser modificar o código, siga os passos abaixo:
 
@@ -62,3 +62,69 @@ Se você quiser modificar o código, siga os passos abaixo:
 1. Clone este repositório:
    ```bash
    git clone [https://github.com/joaosainz/ProfessorIA.git](https://github.com/joaosainz/ProfessorIA.git)
+
+---
+
+## About the Project
+
+Teaching is an art, and all art requires practice. **ProfessorIA** is a revolutionary simulator application where **the teacher is the protagonist**. Unlike traditional tools where Artificial Intelligence acts as a tutor who holds all the knowledge, here the roles are reversed: **AI takes on the role of the student.**
+
+The goal is to provide a safe and dynamic environment for teachers, educators, and lecturers to test their teaching methods, validate examples, and refine their explanations before entering a real classroom.
+
+## How Does it Work?
+
+The dynamic is simple and challenging:
+
+1. **You define the topic:** Specify which concept will be covered in the lesson.
+2. **You explain:** Type your explanation as if you were speaking to the class.
+3. **The "Student" reacts:** The AI ​​processes your teaching methods and reacts realistically. It can:
+  * Understand and ask you to delve deeper into the topic.
+  * Getting confused if the explanation is too technical or poorly structured.
+  * Asking unexpected questions to test your mastery of the subject.
+  * Demanding simpler analogies.
+
+ProfessorIA doesn't judge with grades, it reacts with behavior, ensuring organic and immersive feedback.
+
+## Main Features
+
+* 🧠 **Behavioral Simulation:** Virtual students with different levels of understanding and curiosity.
+
+* 💬 **Real-Time Chat:** Clean and minimalist interface focused on message exchange between teacher and student.
+
+* ⚙️ **Lesson Setup:** Customize the theme and concept to be tested in each new simulation.
+
+* 📜 **Lesson History:** Save and review your conversations to analyze where your teaching methods can improve in the future.
+
+* 🎨 **Modern Design:** User interface built to avoid distractions, with native *Dark Mode* support.
+
+---
+
+## Installation and Use
+
+You don't need to be a programmer to use ProfessorIA. We've prepared a version ready to run on your Windows!
+
+1. Access our **[Releases by clicking here](https://github.com/joaosainz/ProfessorIA/releases)** page.
+
+2. Download the latest available `.exe` file.
+
+3. Double-click the downloaded file and enjoy the simulator! *(No installation required)*
+
+---
+
+## For Developers
+
+If you want to modify the code, follow the steps below:
+
+**Prerequisites:**
+
+* Python 3.10 or higher.
+
+* Install the necessary libraries.
+
+* Git.
+
+**Step-by-step:**
+1. Clone this repository:
+
+```bash
+git clone [https://github.com/joaosainz/ProfessorIA.git](https://github.com/joaosainz/ProfessorIA.git)
