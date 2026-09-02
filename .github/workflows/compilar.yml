@@ -30,6 +30,11 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
+      - name: Criar arquivo .env temporario
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+        shell: bash
+
       - name: Compilar no Windows
         if: matrix.os == 'windows-latest'
         run: |
