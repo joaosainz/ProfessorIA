@@ -1,0 +1,47 @@
+name: Gerar Executaveis
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  compilar:
+    name: Compilar para ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Baixar codigo do repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar PyInstaller e Dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        shell: bash
+
+      - name: Compilar no Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          python -m PyInstaller --noconsole --onefile --icon=professorIA.ico --add-data "mensagemrecebida.wav;." --add-data "clique.wav;." --add-data "conectar.wav;." --add-data "desconectar.wav;." --add-data "iniciar.wav;." --add-data "encerrar.wav;." --add-data "mensagemenviada.wav;." --add-data "intro.wav;." --add-data "professorIA.ico;." --add-data ".env;." --add-data "professorIA.gif;." professorIA.py
+
+      - name: Compilar no Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          python -m PyInstaller --noconsole --onefile --icon=professorIA.ico --add-data "mensagemrecebida.wav:." --add-data "clique.wav:." --add-data "conectar.wav:." --add-data "desconectar.wav:." --add-data "iniciar.wav:." --add-data "encerrar.wav:." --add-data "mensagemenviada.wav:." --add-data "intro.wav:." --add-data "professorIA.ico:." --add-data ".env:." --add-data "professorIA.gif:." professorIA.py
+
+      - name: Salvar arquivo para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: Executavel-${{ matrix.os }}
+          path: dist/*
