@@ -4,7 +4,7 @@
   <p><b>O seu simulador de sala de aula focado na prática docente.</b></p>
 
   <img src="https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow?style=for-the-badge" alt="Status">
-  <img src="https://img.shields.io/badge/Plataforma-Windows-blue?style=for-the-badge" alt="Plataforma">
+  <img src="https://img.shields.io/badge/Plataforma-Windows e Linux (Não Oficial)-blue?style=for-the-badge" alt="Plataforma">
   <img src="https://img.shields.io/badge/Python-3.10+-green?style=for-the-badge&logo=python&logoColor=white" alt="Python">
 </div>
 
@@ -41,11 +41,23 @@ O ProfessorIA não julga com notas, ele reage com comportamento, garantindo um f
 
 ## Instalação e Uso
 
+### Para Windows
+
 Você não precisa ser um programador para usar o ProfessorIA. Preparamos uma versão pronta para rodar no seu Windows!
 
 1. Acesse a nossa página de **[Releases clicando aqui](https://github.com/joaosainz/ProfessorIA/releases)**.
 2. Baixe o arquivo `.exe` mais recente disponível.
 3. Dê um duplo clique no arquivo baixado e aproveite o simulador! *(Não requer instalação)*
+
+### Para Linux
+
+Testamos nosso programa em sistemas que utilizam Linux e por ser um código Python que roda nativamente em Linux, funcionou sem problemas!
+
+1. Acesse a nossa página de **[Releases clicando aqui](https://github.com/joaosainz/ProfessorIA/releases)**.
+2. Baixe o arquivo `.exe` mais recente disponível.
+3. Instale o **[Wine](https://www.winehq.org/)** no seu sistema operacional.
+4. Abra o terminal na pasta onde está baixado seu **professorIA.exe**.
+5. Execute `wine professorIA.exe` e aproveite o simulador!
 
 ---
 
@@ -101,6 +113,8 @@ ProfessorIA doesn't judge with grades, it reacts with behavior, ensuring organic
 
 ## Installation and Use
 
+### For Windows
+
 You don't need to be a programmer to use ProfessorIA. We've prepared a version ready to run on your Windows!
 
 1. Access our **[Releases by clicking here](https://github.com/joaosainz/ProfessorIA/releases)** page.
@@ -108,6 +122,20 @@ You don't need to be a programmer to use ProfessorIA. We've prepared a version r
 2. Download the latest available `.exe` file.
 
 3. Double-click the downloaded file and enjoy the simulator! *(No installation required)*
+
+### For Linux
+
+We tested our program on Linux systems, and since it is Python code that runs natively on Linux, it worked without issues!
+
+1. Visit our **[Releases page by clicking here](https://github.com/joaosainz/ProfessorIA/releases)**.
+ 
+2. Download the latest available `.exe` file.
+   
+3. Install **[Wine](https://www.winehq.org/)** on your operating system.
+   
+4. Open the terminal in the folder where your **professorIA.exe** is downloaded.
+   
+5. Run `wine professorIA.exe` and enjoy the simulator!
 
 ---
 
