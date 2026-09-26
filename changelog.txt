@@ -1,0 +1,6 @@
+V2.0.0
+  - **Changelog** Criado!
+  - Mudança de API da IA (Groq -> Google)
+  - Mudança do Modelo da IA (Compound Mini -> Gemini 3.5 Flash Lite)
+  - Inclusão de suporte oficial para plataformas Linux
+  - Botão de limpar histórico
