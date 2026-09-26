@@ -11,19 +11,22 @@ import requests
 import urllib.request
 import shutil
 from dotenv import load_dotenv
-from groq import Groq
-import winsound
+from google import genai
+from playsound import playsound
+import threading
+import platform
+from gtts import gTTS
 
 ##########GROQ
 if hasattr(sys, '_MEIPASS'):
     caminho_env = os.path.join(sys._MEIPASS, ".env")
 else:
-    caminho_env = os.path.join(os.path.abspath("."), ".env")
+    caminho_env = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
 load_dotenv(dotenv_path=caminho_env)
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-MODELO_GROQ = "openai/gpt-oss-120b"
-cliente_groq = Groq(api_key=GROQ_API_KEY)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+cliente_gemini = genai.Client(api_key=GEMINI_API_KEY)
+MODELO_GEMINI = "gemini-3.5-flash-lite"
 
 ##########LISTAS E VARIÁVEIS INICIAIS
 nomes_alunos = ["Gabriel", "Sophia", "Lucas", "Beatriz", "Matheus", "Heloísa", "Rodrigo", "Alice", "Pedro", "Davi", "Felipe", "Caio", "Gustavo", "Henrique", "Rafael", "Thiago", "Bruno", "Leonardo", "Vinícius", "Arthur", "Isabella", "Valentina", "Júlia", "Manuela", "Larissa", "Camila", "Fernanda", "Mariana", "Letícia", "Amanda", "Carolina", "Giovanna", "Theo", "Bento", "Murilo", "Cauã", "Lívia", "Rebeca", "Yasmin", "Talita"]
@@ -66,48 +69,83 @@ simulacao_ativa = False
 atualizacao_pendente = False
 aluno_respondeu = False
 verificacao_lista = True
-versao = "1.4.0"
+sistema_so = platform.system()
+versao = "2.0.0"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
-url_download = "https://github.com/joaosainz/ProfessorIA/releases/download/Windows/ProfessorIA.exe"
+
+if sistema_so == "Windows":
+    extensao = ".exe"
+    url_download = "https://github.com/joaosainz/ProfessorIA/releases/download/Windows/ProfessorIA.exe"
+elif sistema_so == "Linux":
+    extensao = ""
+    url_download = "https://github.com/joaosainz/ProfessorIA/releases/download/Linux/ProfessorIA"
 
 ##########CRIANDO ARQUIVOS NA PASTA DOCUMENTOS DO USUÁRIO
 pasta_destino = os.path.join(os.path.expanduser("~"), "Documents", "professoria")
 caminho_historico = os.path.join(pasta_destino, "historico.json")
 caminho_aulas = os.path.join(pasta_destino, "aulas.json")
 caminho_nome = os.path.join(pasta_destino, "nome.json")
+caminho_config = os.path.join(pasta_destino, "config.json")
+caminho_audio = os.path.join(pasta_destino)
 
 if not os.path.exists(pasta_destino):
     os.makedirs(pasta_destino)
 
-##########CARREGANDO OU CRIANDO HISTÓRICO
+########## CARREGANDO OU CRIANDO HISTÓRICO
 if os.path.exists(caminho_historico):
     with open(caminho_historico, "r", encoding="utf-8") as f:
         try:
             historico_avaliacao = json.load(f)
         except json.JSONDecodeError:
             historico_avaliacao = []
+            with open(caminho_historico, "w", encoding="utf-8") as f_out:
+                json.dump(historico_avaliacao, f_out, indent=4, ensure_ascii=False)
 else:
     historico_avaliacao = []
+    with open(caminho_historico, "w", encoding="utf-8") as f:
+        json.dump(historico_avaliacao, f, indent=4, ensure_ascii=False)
 
-##########CARREGANDO OU CRIANDO AULAS
+########## CARREGANDO OU CRIANDO AULAS
 if os.path.exists(caminho_aulas):
     with open(caminho_aulas, "r", encoding="utf-8") as f:
         try:
             salas_de_aula = json.load(f)
         except json.JSONDecodeError:
             salas_de_aula = 0
+            with open(caminho_aulas, "w", encoding="utf-8") as f_out:
+                json.dump(salas_de_aula, f_out, indent=4, ensure_ascii=False)
 else:
     salas_de_aula = 0
+    with open(caminho_aulas, "w", encoding="utf-8") as f:
+        json.dump(salas_de_aula, f, indent=4, ensure_ascii=False)
 
-##########CARREGANDO OU CRIANDO NOME USUÁRIO
+########## CARREGANDO OU CRIANDO CONFIG
+if os.path.exists(caminho_config):
+    with open(caminho_config, "r", encoding="utf-8") as f:
+        try:
+            som_ativo = json.load(f)
+        except json.JSONDecodeError:
+            som_ativo = True
+            with open(caminho_config, "w", encoding="utf-8") as f_out:
+                json.dump(som_ativo, f_out, indent=4, ensure_ascii=False)
+else:
+    som_ativo = True
+    with open(caminho_config, "w", encoding="utf-8") as f:
+        json.dump(som_ativo, f, indent=4, ensure_ascii=False)
+
+########## CARREGANDO OU CRIANDO NOME USUÁRIO
 if os.path.exists(caminho_nome):
     with open(caminho_nome, "r", encoding="utf-8") as f:
         try:
             nome_professor_i = json.load(f)
         except json.JSONDecodeError:
             nome_professor_i = " "
+            with open(caminho_nome, "w", encoding="utf-8") as f_out:
+                json.dump(nome_professor_i, f_out, indent=4, ensure_ascii=False)
 else:
     nome_professor_i = " "
+    with open(caminho_nome, "w", encoding="utf-8") as f:
+        json.dump(nome_professor_i, f, indent=4, ensure_ascii=False)
 
 ##########FUNÇÕES DE JANELA
 def carregar_intro():
@@ -151,18 +189,20 @@ def carregar_intro():
         pasta_atual = os.path.dirname(os.path.abspath(__file__))
 
     time.sleep(1.5)
-    caminho_do_arquivo = os.path.join(pasta_atual, "DeletarProfessorIA.exe")
+
+    nome_deletar = f"DeletarProfessorIA{extensao}"
+    caminho_do_arquivo = os.path.join(pasta_atual, nome_deletar)
     pasta_usuario = os.path.expanduser("~")
     pasta_destino = os.path.join(pasta_usuario, "Documents", "professoria", "versoesantigas")
 
     if os.path.exists(caminho_do_arquivo):
         agora = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        novo_nome = f"SUBSTITUIDO EM {agora}.exe"
+        novo_nome = f"SUBSTITUIDO EM {agora}{extensao}"
         caminho_destino = os.path.join(pasta_destino, novo_nome)
         os.makedirs(pasta_destino, exist_ok=True)
         shutil.move(caminho_do_arquivo, caminho_destino)
 
-    winsound.PlaySound(obter_caminho("intro.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
+    tocar_som(obter_caminho("intro.wav"))
 
     try:
         headers = {
@@ -194,7 +234,13 @@ def carregar_intro():
         lbl_status.config(text="Baixando nova versão...", bg="#121214", fg="#8f8f98")
         intro.update()
         time.sleep(1)
-        urllib.request.urlretrieve(url_download, f"ProfessorIA_{versao_recente}.exe")
+
+        nome_novo_exec = f"ProfessorIA_{versao_recente}{extensao}"
+        urllib.request.urlretrieve(url_download, nome_novo_exec)
+
+        if sistema_so != "Windows":
+            st = os.stat(nome_novo_exec)
+            os.chmod(nome_novo_exec, st.st_mode | 0o111)
 
         for i in range(1, 101):
             barra_progresso['value'] = i
@@ -205,7 +251,7 @@ def carregar_intro():
         if getattr(sys, 'frozen', False):
             caminho_atual = sys.executable
             pasta_atual = os.path.dirname(caminho_atual)
-            caminho_temporario = os.path.join(pasta_atual, "DeletarProfessorIA.exe")
+            caminho_temporario = os.path.join(pasta_atual, f"DeletarProfessorIA{extensao}")
             os.rename(caminho_atual, caminho_temporario)
             time.sleep(1.5)
 
@@ -215,63 +261,88 @@ def carregar_intro():
 
             if os.path.exists(caminho_temporario):
                 agora = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-                novo_nome = f"SUBSTITUIDO EM {agora}.exe"
+                novo_nome = f"SUBSTITUIDO EM {agora}{extensao}"
                 caminho_destino = os.path.join(pasta_destino, novo_nome)
                 shutil.move(caminho_temporario, caminho_destino)
 
     intro.destroy()
 
 def sobre_app():
-    winsound.PlaySound(obter_caminho("clique.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
-    sobre = tk.Tk()
-    sobre.title("Sobre o App")
+    tocar_som(obter_caminho("clique.wav"))
+
+    sobre = tk.Toplevel(root)
+    sobre.title("Sobre o App & Notas de Atualização")
     sobre.configure(bg="#121214")
 
-    largura, altura = 500, 300
+    largura, altura = 550, 520
     tela_largura = sobre.winfo_screenwidth()
     tela_altura = sobre.winfo_screenheight()
-    x = ((tela_largura // 2) - (largura // 2))
+    x = (tela_largura // 2) - (largura // 2)
     y = (tela_altura // 2) - (altura // 2)
     sobre.geometry(f"{largura}x{altura}+{x}+{y}")
 
-    sobre.iconbitmap(obter_caminho("professorIA.ico"))
+    icone = tk.PhotoImage(file=obter_caminho("professorIAico.gif"))
+    sobre.iconphoto(True, icone)
     sobre.resizable(False, False)
-    sobre.update()
 
-    sobre_corpo = tk.Label(
-        sobre,
-        wraplength=460,
-        text="O ProfessorIA© é um aplicativo simulador onde o professor pratica explicar um conteúdo e recebe crítica real sobre como foi. A IA não ensina o professor, ela faz papel de aluno. O professor digita a explicação, o aluno reage, faz perguntas, fica confuso, aprofunda.",
-        font=("Consolas", 12, "bold"),
-        bg="#121214",
-        fg="white"
-    )
-    sobre_corpo.pack(pady=(80, 50))
+    tk.Label(sobre, text=f"ProfessorIA v{versao}", font=("Consolas", 14, "bold"), bg="#121214", fg="#FFFFFF").pack(pady=(15, 2))
+
+    so_nome = platform.system()
+    tk.Label(sobre, text=f"Plataforma: {so_nome}", font=("Consolas", 9, "italic"), bg="#121214", fg="#8f8f98").pack(pady=(0, 10))
+
+    sobre_corpo = tk.Label(sobre, wraplength=500, text="O ProfessorIA© é um aplicativo simulador onde o professor pratica explicar um conteúdo e recebe crítica real sobre como foi. A IA não ensina o professor, ela faz papel de aluno. O professor digita a explicação, o aluno reage, faz perguntas, fica confuso, aprofunda.", font=("Consolas", 10), bg="#121214", fg="#e1e1e6", justify="center")
+    sobre_corpo.pack(pady=(0, 10), padx=20)
+
+    tk.Label(sobre, text="📋 Changelog:", font=("Consolas", 10, "bold"), bg="#121214", fg="#FFFFFF",anchor="w").pack(fill="x", padx=25, pady=(5, 5))
+
+    frame_changelog = tk.Frame(sobre, bg="#18181c", bd=1, relief="solid")
+    frame_changelog.pack(fill="both", expand=True, padx=25, pady=(0, 15))
+
+    scrollbar_cl = ttk.Scrollbar(frame_changelog, orient="vertical")
+    text_changelog = tk.Text(frame_changelog, bg="#18181c", fg="white", font=("Consolas", 9), bd=0, padx=10, pady=10, wrap="word", yscrollcommand=scrollbar_cl.set)
+    scrollbar_cl.config(command=text_changelog.yview)
+
+    scrollbar_cl.pack(side="right", fill="y")
+    text_changelog.pack(side="left", fill="both", expand=True)
+
+    url_changelog = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/changelog.txt"
+    try:
+        resposta = requests.get(url_changelog, timeout=3)
+        resposta.raise_for_status()
+        conteudo_changelog = resposta.text.strip()
+    except Exception:
+        conteudo_changelog = "Não foi possível carregar as notas de atualização no momento.\nVerifique sua conexão com a internet."
+
+    text_changelog.insert("1.0", conteudo_changelog)
+    text_changelog.configure(state="disabled")
 
 def historico():
     global historico_avaliacao, caminho_historico, pasta_destino, verificacao_lista
-    winsound.PlaySound(obter_caminho("clique.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
+    tocar_som(obter_caminho("clique.wav"))
 
-    janela_historico = tk.Tk()
+    janela_historico = tk.Toplevel(root)
     janela_historico.title("Histórico de Aulas")
     janela_historico.configure(bg="#121214")
     janela_historico.resizable(False, False)
 
-    largura, altura = 800, 400
+    largura, altura = 800, 500
     tela_largura = janela_historico.winfo_screenwidth()
     tela_altura = janela_historico.winfo_screenheight()
-    x = ((tela_largura // 2) - (largura // 2))
+    x = (tela_largura // 2) - (largura // 2)
     y = (tela_altura // 2) - (altura // 2)
     janela_historico.geometry(f"{largura}x{altura}+{x}+{y}")
 
-    janela_historico.iconbitmap(obter_caminho("professorIA.ico"))
-    janela_historico.update()
+    icone = tk.PhotoImage(file=obter_caminho("professorIAico.gif"))
+    janela_historico.iconphoto(True, icone)
 
-    tk.Label(janela_historico, text="📜 Histórico", font=("Consolas", 24, "bold"), bg="#121214", fg="white", pady=20).pack()
+    tk.Label(janela_historico, text="📜 Histórico de Aulas", font=("Consolas", 20, "bold"), bg="#121214", fg="white", pady=15).pack()
 
-    text_area = tk.Text(janela_historico, height=12, width=70, bg="#121214", fg="white", font=("Consolas", 11), highlightthickness=0, borderwidth=0, padx=15)
-    scrollbar_hist = tk.Scrollbar(janela_historico, orient="vertical", command=text_area.yview)
-    text_area.configure(yscrollcommand=scrollbar_hist.set)
+    frame_conteudo = tk.Frame(janela_historico, bg="#121214")
+    frame_conteudo.pack(fill="both", expand=True, padx=20, pady=(0, 10))
+
+    scrollbar_hist = ttk.Scrollbar(frame_conteudo, orient="vertical")
+    text_area = tk.Text(frame_conteudo, height=14, bg="#18181c", fg="white", font=("Consolas", 10), highlightthickness=1, highlightbackground="#29292e",borderwidth=0, padx=15, pady=10,yscrollcommand=scrollbar_hist.set)
+    scrollbar_hist.config(command=text_area.yview)
 
     texto_formatado = ""
     verificacao_lista = True
@@ -287,16 +358,16 @@ def historico():
             historico_avaliacao = []
             with open(caminho_historico, "w", encoding="utf-8") as f:
                 json.dump([], f, indent=4, ensure_ascii=False)
-            texto_formatado = "Seu histórico foi apagado devido a uma atualização."
+            texto_formatado = "Seu histórico foi restaurado devido a uma atualização de versão incompatível."
         else:
             for item in historico_avaliacao:
-                texto_formatado += f"AULA: {item['Aula']}\n\n"
-                texto_formatado += f"PROFESSOR: {item['Nome']}\n\n"
-                texto_formatado += f"INTERAÇÕES: {item['Interações']}\n\n"
-                texto_formatado += f"TEMA: {item['Tema']}\n\n"
-                texto_formatado += f"PERSONALIDADE: {item['Personalidade']}.\n\n"
-                texto_formatado += f"AVALIAÇÃO: {item['Avaliação']}\n\n"
-                texto_formatado += "-" * 40 + "\n\n"
+                texto_formatado += f"AULA: {item['Aula']}\n"
+                texto_formatado += f"PROFESSOR: {item['Nome']}\n"
+                texto_formatado += f"INTERAÇÕES: {item['Interações']}\n"
+                texto_formatado += f"TEMA: {item['Tema']}\n"
+                texto_formatado += f"PERSONALIDADE: {item['Personalidade']}\n"
+                texto_formatado += f"AVALIAÇÃO: {item['Avaliação']}\n"
+                texto_formatado += "-" * 50 + "\n\n"
     else:
         texto_formatado = "Nenhum histórico registrado ainda."
 
@@ -306,43 +377,99 @@ def historico():
     scrollbar_hist.pack(side="right", fill="y")
     text_area.pack(side="left", fill="both", expand=True)
 
+    def apagar_historico():
+        global historico_avaliacao
+        historico_avaliacao = []
+        with open(caminho_historico, "w", encoding="utf-8") as f:
+            json.dump([], f, indent=4, ensure_ascii=False)
+        text_area.configure(state="normal")
+        text_area.delete("1.0", tk.END)
+        text_area.insert("1.0", "Histórico apagado com sucesso.")
+        text_area.configure(state="disabled")
+
+    btn_limpar = tk.Button(janela_historico, text="🗑️ Limpar Histórico", font=("Consolas", 10, "bold"), bg="#202024", fg="#aa3a3a", bd=1, relief="solid",  command=apagar_historico)
+    btn_limpar.pack(fill="x", padx=20, pady=(0, 15))
+
+
 ##########FUNÇÕES DE FUNCIONALIDADE
 def configurar_scroll_largura(event):
     canvas_chat.itemconfig(canvas_chat.find_withtag("all")[0], width=event.width)
     canvas_chat.configure(scrollregion=canvas_chat.bbox("all"))
 
-def truncar_resposta(texto, max_palavras=120):
-    palavras = texto.strip().split()
-    if len(palavras) <= max_palavras:
-        return texto.strip()
+def mutar():
+    global som_ativo
+    tocar_som(obter_caminho("clique.wav"))
+    if som_ativo == True:
+        som_ativo = False
+        btn_mute.config(text="🔈 Sons: Inativos")
+        with open(caminho_config, "w", encoding="utf-8") as f:
+            json.dump(som_ativo, f, indent=4, ensure_ascii=False)
+    else:
+        som_ativo = True
+        btn_mute.config(text="🔊 Sons: Ativos")
+        with open(caminho_config, "w", encoding="utf-8") as f:
+            json.dump(som_ativo, f, indent=4, ensure_ascii=False)
 
-    texto_truncado = " ".join(palavras[:max_palavras])
+def falar_texto(texto):
+    global som_ativo
+    def executar():
+        try:
+            if som_ativo == True:
+                tts = gTTS(text=texto, lang='pt', tld='com.br')
+                caminho_audio = os.path.join(pasta_destino, "fala_aluno.mp3")
 
-    for pontuacao in [".", "!", "?"]:
-        if pontuacao in texto_truncado:
-            ultimo = texto_truncado.rfind(pontuacao)
-            return texto_truncado[:ultimo + 1]
+                tts.save(caminho_audio)
 
-    return texto_truncado + "..."
+                tocar_som(caminho_audio)
+            else:
+                return
+        except:
+            return
+    threading.Thread(target=executar, daemon=True).start()
 
-def executar_chamada_groq(mensagens, temp=0.75, max_t=90):
-    try:
-        completion = cliente_groq.chat.completions.create(
-            model=MODELO_GROQ,
-            messages=mensagens,
-            temperature=temp,
-            max_tokens=max_t,
-            top_p=0.9,
-        )
-        texto = completion.choices[0].message.content.strip()
-        return truncar_resposta(texto, max_palavras=int(max_t * 1.1))
-    except Exception as e:
-        raise e
+def executar_chamada_gemini(mensagens, temp=0.75, max_t=100):
+        try:
+            system_instruction = None
+            conteudo_dialogo = []
+
+            for msg in mensagens:
+                role = msg.get("role")
+                content = msg.get("content")
+
+                if role == "system":
+                    system_instruction = content
+                elif role == "user":
+                    conteudo_dialogo.append(f"Usuário: {content}")
+                elif role == "assistant":
+                    conteudo_dialogo.append(f"Modelo: {content}")
+
+            prompt_final = "\n\n".join(conteudo_dialogo)
+            config = genai.types.GenerateContentConfig(
+                temperature=temp,
+                system_instruction=system_instruction
+            )
+
+            resposta = cliente_gemini.models.generate_content(
+                model=MODELO_GEMINI,
+                contents=prompt_final,
+                config=config
+            )
+
+            return resposta.text.strip()
+
+        except Exception as e:
+            raise e
 
 def obter_caminho(arquivo):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, arquivo)
-    return os.path.join(os.path.abspath("."), arquivo)
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), arquivo)
+
+def tocar_som(arquivo):
+    if som_ativo == True:
+        threading.Thread(target=playsound, args=(arquivo,), daemon=True).start()
+    else:
+        return
 
 ##########FUNÇÕES DE EVENTOS
 def gerar_perfil():
@@ -353,7 +480,7 @@ def gerar_perfil():
         adicionar_balao_chat("Entrada inválida", "Digite um nome válido para começar a aula!", "erro")
         return
 
-    winsound.PlaySound(obter_caminho("conectar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
+    tocar_som(obter_caminho("conectar.wav"))
 
     aluno_atual = random.choice(nomes_alunos)
     personalidade_atual = random.choice(personalidades)
@@ -387,6 +514,7 @@ def gerar_perfil():
     nome_professor.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
     btn_sobre.config(state="normal", bg="#202024", fg="#1E96FC", relief="solid", borderwidth=1)
     btn_historico.config(state="normal", bg="#202024", fg="#1E96FC", relief="solid", borderwidth=1)
+    btn_mute.config(state="normal", bg="#202024", fg="#1E96FC", relief="solid", borderwidth=1)
     btn_entrar_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
 
 def iniciar_simulacao():
@@ -419,7 +547,7 @@ def iniciar_simulacao():
     btn_entrar_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
 
-    winsound.PlaySound(obter_caminho("iniciar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
+    tocar_som(obter_caminho("iniciar.wav"))
 
     prompt_sistema = (
         f"Você é {aluno_atual}, um estudante real com a seguinte personalidade: {personalidade_atual}.\n\n"
@@ -445,7 +573,7 @@ def iniciar_simulacao():
     ]
 
     try:
-        duvida_inicial = executar_chamada_groq(mensagens, temp=0.8, max_t=70)
+        duvida_inicial = executar_chamada_gemini(mensagens, temp=0.8, max_t=200)
         historico_contexto.append({"role": "assistant", "content": duvida_inicial})
     except Exception as e:
         comecar.config(state="normal", bg="#202024", fg="#aa3a3a", text="❌ Encerrar Simulação")
@@ -465,7 +593,7 @@ def enviar_mensagem_professor():
     if not texto_professor or not simulacao_ativa or input_fechado:
         return
 
-    winsound.PlaySound(obter_caminho("mensagemenviada.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
+    tocar_som(obter_caminho("mensagemenviada.wav"))
     input_fechado = True
 
     adicionar_balao_chat(nome_professor.get(), texto_professor, "professor")
@@ -490,7 +618,7 @@ def enviar_mensagem_professor():
     mensagens.extend(historico_recente)
 
     try:
-        resposta_ia = executar_chamada_groq(mensagens, temp=0.75, max_t=80)
+        resposta_ia = executar_chamada_gemini(mensagens, temp=0.75, max_t=200)
         historico_contexto.append({"role": "assistant", "content": resposta_ia})
     except Exception as e:
         comecar.config(state="normal", bg="#202024", fg="#aa3a3a", text="❌ Encerrar Simulação")
@@ -526,7 +654,7 @@ def adicionar_balao_chat(remetente, texto, tipo):
         balao.pack(side="right", anchor="e")
 
     elif tipo == "aluno":
-        winsound.PlaySound(obter_caminho("mensagemrecebida.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
+        tocar_som(obter_caminho("mensagemenviada.wav"))
         balao = tk.Label(
             linha_frame,
             text=f"{remetente} • {agora.strftime('%H:%M:%S')}\n\n{texto}",
@@ -597,6 +725,7 @@ def adicionar_fala_aluno_e_liberar_interface(texto):
         return
 
     adicionar_balao_chat(aluno_atual, texto, "aluno")
+    falar_texto(texto)
 
     comecar.config(state="normal", bg="#202024", fg="#aa3a3a", text="❌ Encerrar Simulação")
     input_fechado = False
@@ -608,7 +737,7 @@ def adicionar_fala_aluno_e_liberar_interface(texto):
         finalizar_aula()
 
 def reiniciar_aula():
-    winsound.PlaySound(obter_caminho("desconectar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
+    tocar_som(obter_caminho("desconectar.wav"))
     global aluno_atual, personalidade_atual, historico_contexto, interacoes_atuais, simulacao_ativa, input_fechado, aluno_respondeu
 
     aluno_atual = None
@@ -637,11 +766,12 @@ def reiniciar_aula():
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
     btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
     btn_historico.config(state="disabled", bg="#202024", fg="#8f8f98")
+    btn_mute.config(state="disabled", bg="#202024", fg="#8f8f98")
 
 def finalizar_aula():
     global simulacao_ativa, historico_avaliacao, historico_contexto, interacoes_atuais, aluno_respondeu
 
-    winsound.PlaySound(obter_caminho("encerrar.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
+    tocar_som(obter_caminho("encerrar.wav"))
 
     if not aluno_respondeu:
         return
@@ -671,7 +801,7 @@ def finalizar_aula():
     }]
 
     try:
-        critica = executar_chamada_groq(prompt_aval, temp=0.55, max_t=175)
+        critica = executar_chamada_gemini(prompt_aval, temp=0.55, max_t=175)
     except Exception as e:
         adicionar_balao_chat("Erro de IA", f"Não foi possível gerar a avaliação final.\nErro: {str(e)}", "erro")
         return
@@ -702,7 +832,7 @@ def finalizar_aula():
     }]
 
     try:
-        curiosidade = executar_chamada_groq(prompt_ambiental, temp=0.7, max_t=140)
+        curiosidade = executar_chamada_gemini(prompt_ambiental, temp=0.7, max_t=140)
         adicionar_balao_chat("Meio ambiente", curiosidade, "ambiental")
     except:
         pass
@@ -724,6 +854,7 @@ def finalizar_aula():
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
     btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
     btn_historico.config(state="disabled", bg="#202024", fg="#8f8f98")
+    btn_mute.config(state="disabled", bg="#202024", fg="#8f8f98")
 
 ##########LIGANDO O APP
 carregar_intro()
@@ -731,11 +862,12 @@ carregar_intro()
 if not atualizacao_pendente:
     root = tk.Tk()
     root.title("ProfessorIA - Simulador Docente")
-    root.iconbitmap(obter_caminho("professorIA.ico"))
+    icone = tk.PhotoImage(file=obter_caminho("professorIAico.gif"))
+    root.iconphoto(True, icone)
     root.configure(bg="#121214")
 
-    largura, altura = 1172, 755
-    root.minsize(1172, 755)
+    largura, altura = 1172, 855
+    root.minsize(1172, 855)
     tela_largura = root.winfo_screenwidth()
     tela_altura = root.winfo_screenheight()
     x = (tela_largura // 2) - (largura // 2)
@@ -784,12 +916,19 @@ if not atualizacao_pendente:
     btn_sair_aula.grid(row=9, column=0, padx=20, pady=(0, 15), sticky="ew")
     btn_sair_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
 
+    if som_ativo == True:
+        btn_mute = tk.Button(painel_esquerdo, text="🔊 Sons: Ativos", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=mutar)
+    else:
+        btn_mute = tk.Button(painel_esquerdo, text="🔊 Sons: Inativos", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=mutar)
+    btn_mute.grid(row=10, column=0, padx=20, pady=(0, 15), sticky="ew")
+    btn_mute.config(state="disabled", bg="#202024", fg="#8f8f98")
+
     btn_historico = tk.Button(painel_esquerdo, text="📜 Histórico", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=historico)
-    btn_historico.grid(row=10, column=0, padx=20, pady=(0, 15), sticky="ew")
+    btn_historico.grid(row=11, column=0, padx=20, pady=(0, 15), sticky="ew")
     btn_historico.config(state="disabled", bg="#202024", fg="#8f8f98")
 
     btn_sobre = tk.Button(painel_esquerdo, text="📌 Sobre o App", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=sobre_app)
-    btn_sobre.grid(row=11, column=0, padx=20, pady=(0, 15), sticky="ew")
+    btn_sobre.grid(row=12, column=0, padx=20, pady=(0, 15), sticky="ew")
     btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
 
     direitos = tk.Label(painel_esquerdo, text="UnB - Computação - APC 06\nGarotos de Programa", bg="#202024", fg="gray")
