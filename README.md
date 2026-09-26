@@ -45,7 +45,7 @@ O ProfessorIA não julga com notas, ele reage com comportamento, garantindo um f
 
 Você não precisa ser um programador para usar o ProfessorIA. Preparamos uma versão pronta para rodar no seu Windows!
 
-1. Acesse a nossa página de **[Releases clicando aqui](https://github.com/joaosainz/ProfessorIA/releases)**.
+1. Acesse a nossa página de **[Releases clicando aqui](https://github.com/joaosainz/ProfessorIA/releases/tag/Windows)**.
 2. Baixe o arquivo `.exe` mais recente disponível.
 3. Dê um duplo clique no arquivo baixado e aproveite o simulador! *(Não requer instalação)*
 
@@ -53,7 +53,7 @@ Você não precisa ser um programador para usar o ProfessorIA. Preparamos uma ve
 
 O ProfessorIA possui uma versão nativa compilada para distribuições Linux!
 
-1. Acesse a nossa página de **[Releases clicando aqui](https://github.com/joaosainz/ProfessorIA/releases)**.
+1. Acesse a nossa página de **[Releases clicando aqui](https://github.com/joaosainz/ProfessorIA/releases/tag/Linux)**.
 2. Baixe o executável para Linux mais recente disponível.
 3. Abra o terminal na pasta onde o arquivo foi baixado.
 4. Conceda permissão de execução para o arquivo:
@@ -118,7 +118,7 @@ ProfessorIA doesn't judge with grades, it reacts with behavior, ensuring organic
 
 You don't need to be a programmer to use ProfessorIA. We've prepared a version ready to run on your Windows!
 
-1. Access our **[Releases by clicking here](https://github.com/joaosainz/ProfessorIA/releases)** page.
+1. Access our **[Releases by clicking here](https://github.com/joaosainz/ProfessorIA/releases/tag/Windows)** page.
 
 2. Download the latest available `.exe` file.
 
@@ -128,7 +128,7 @@ You don't need to be a programmer to use ProfessorIA. We've prepared a version r
 
 ProfessorIA has a native version compiled for Linux distributions!
 
-1. Access our **[Releases by clicking here](https://github.com/joaosainz/ProfessorIA/releases)** page.
+1. Access our **[Releases by clicking here](https://github.com/joaosainz/ProfessorIA/releases/tag/Linux)** page.
 
 2. Download the latest available Linux executable.
 
