@@ -1,3 +1,5 @@
 requests
 python-dotenv
-groq
+google-genai
+playsound
+gTTS
