@@ -4,3 +4,5 @@ V2.0.0
   - Mudança do Modelo da IA (Compound Mini -> Gemini 3.5 Flash Lite)
   - Inclusão de suporte oficial para plataformas Linux
   - Botão de limpar histórico
+  - Voz de alunos
+  - Opção de remover sons
