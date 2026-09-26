@@ -51,13 +51,14 @@ Você não precisa ser um programador para usar o ProfessorIA. Preparamos uma ve
 
 ### Para Linux
 
-Testamos nosso programa em sistemas que utilizam Linux e por ser um código Python que roda nativamente em Linux, funcionou sem problemas!
+O ProfessorIA possui uma versão nativa compilada para distribuições Linux!
 
 1. Acesse a nossa página de **[Releases clicando aqui](https://github.com/joaosainz/ProfessorIA/releases)**.
-2. Baixe o arquivo `.exe` mais recente disponível.
-3. Instale o **[Wine](https://www.winehq.org/)** no seu sistema operacional.
-4. Abra o terminal na pasta onde está baixado seu **professorIA.exe**.
-5. Execute `wine professorIA.exe` e aproveite o simulador!
+2. Baixe o executável para Linux mais recente disponível.
+3. Abra o terminal na pasta onde o arquivo foi baixado.
+4. Conceda permissão de execução para o arquivo:
+   ```chmod +x ProfessorIA-linux```
+5. Execute o arquivo no terminal ou dando um duplo clique no arquivo e aproveite o simulador!
 
 ---
 
@@ -125,17 +126,17 @@ You don't need to be a programmer to use ProfessorIA. We've prepared a version r
 
 ### For Linux
 
-We tested our program on Linux systems, and since it is Python code that runs natively on Linux, it worked without issues!
+ProfessorIA has a native version compiled for Linux distributions!
 
-1. Visit our **[Releases page by clicking here](https://github.com/joaosainz/ProfessorIA/releases)**.
- 
-2. Download the latest available `.exe` file.
-   
-3. Install **[Wine](https://www.winehq.org/)** on your operating system.
-   
-4. Open the terminal in the folder where your **professorIA.exe** is downloaded.
-   
-5. Run `wine professorIA.exe` and enjoy the simulator!
+1. Access our **[Releases by clicking here](https://github.com/joaosainz/ProfessorIA/releases)** page.
+
+2. Download the latest available Linux executable.
+
+3. Open the terminal in the folder where the file was downloaded.
+
+4. Grant execution permission to the file: ```chmod +x ProfessorIA-linux```
+  
+5. Run the file in the terminal or by double-clicking the file and enjoy the simulator!
 
 ---
 
