@@ -3,8 +3,8 @@
 
   <p><b>O seu simulador de sala de aula focado na prática docente.</b></p>
 
-  <img src="https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow?style=for-the-badge" alt="Status">
-  <img src="https://img.shields.io/badge/Plataforma-Windows e Linux (Não Oficial)-blue?style=for-the-badge" alt="Plataforma">
+  <img src="https://img.shields.io/badge/Status-Em%20Lançado-yellow?style=for-the-badge" alt="Status">
+  <img src="https://img.shields.io/badge/Plataforma-Windows e Linux-blue?style=for-the-badge" alt="Plataforma">
   <img src="https://img.shields.io/badge/Python-3.10+-green?style=for-the-badge&logo=python&logoColor=white" alt="Python">
 </div>
 
