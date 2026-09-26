@@ -12,10 +12,12 @@ import urllib.request
 import shutil
 from dotenv import load_dotenv
 from google import genai
-from playsound import playsound
+import pygame
 import threading
 import platform
 from gtts import gTTS
+
+pygame.mixer.init()
 
 ##########GROQ
 if hasattr(sys, '_MEIPASS'):
@@ -466,10 +468,15 @@ def obter_caminho(arquivo):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), arquivo)
 
 def tocar_som(arquivo):
-    if som_ativo == True:
-        threading.Thread(target=playsound, args=(arquivo,), daemon=True).start()
+    if som_ativo:
+        def tocar():
+            caminho = obter_caminho(arquivo)
+            pygame.mixer.music.load(caminho)
+            pygame.mixer.music.play()
+        threading.Thread(target=tocar, daemon=True).start()
     else:
         return
+
 
 ##########FUNÇÕES DE EVENTOS
 def gerar_perfil():

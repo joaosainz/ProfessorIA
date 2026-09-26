@@ -1,5 +1,5 @@
 requests
 python-dotenv
 google-genai
-playsound
+pygame-ce
 gTTS
