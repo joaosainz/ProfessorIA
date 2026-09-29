@@ -26,9 +26,13 @@ else:
     caminho_env = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
 load_dotenv(dotenv_path=caminho_env)
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-cliente_gemini = genai.Client(api_key=GEMINI_API_KEY)
-MODELO_GEMINI = "gemini-3.5-flash-lite"
+URL_SERVIDOR_CHAT = os.getenv("CHAT")
+URL_SERVIDOR_STATUS = os.getenv("STATUS")
+
+servidor_online = False
+fila_atual_servidor = 0
+pedidos_globais_servidor = 0
+
 
 ##########LISTAS E VARIÁVEIS INICIAIS
 nomes_alunos = ["Gabriel", "Sophia", "Lucas", "Beatriz", "Matheus", "Heloísa", "Rodrigo", "Alice", "Pedro", "Davi", "Felipe", "Caio", "Gustavo", "Henrique", "Rafael", "Thiago", "Bruno", "Leonardo", "Vinícius", "Arthur", "Isabella", "Valentina", "Júlia", "Manuela", "Larissa", "Camila", "Fernanda", "Mariana", "Letícia", "Amanda", "Carolina", "Giovanna", "Theo", "Bento", "Murilo", "Cauã", "Lívia", "Rebeca", "Yasmin", "Talita"]
@@ -72,7 +76,7 @@ atualizacao_pendente = False
 aluno_respondeu = False
 verificacao_lista = True
 sistema_so = platform.system()
-versao = "2.0.0"
+versao = "2.1.0"
 url_versao = "https://raw.githubusercontent.com/joaosainz/ProfessorIA/main/version.txt"
 
 if sistema_so == "Windows":
@@ -429,38 +433,64 @@ def falar_texto(texto):
             return
     threading.Thread(target=executar, daemon=True).start()
 
-def executar_chamada_gemini(mensagens, temp=0.75, max_t=100):
+def monitorar_servidor():
+    global servidor_online, fila_atual_servidor, pedidos_globais_servidor
+    while True:
         try:
-            system_instruction = None
-            conteudo_dialogo = []
+            resposta = requests.get(URL_SERVIDOR_STATUS, timeout=4)
+            if resposta.status_code == 200:
+                dados = resposta.json()
+                servidor_online = True
+                fila_atual_servidor = dados.get("fila_atual", 0)
+                pedidos_globais_servidor = dados.get("total_pedidos_global", 0)
+            else:
+                servidor_online = False
+        except Exception:
+            servidor_online = False
 
-            for msg in mensagens:
-                role = msg.get("role")
-                content = msg.get("content")
+        try:
+            root.after(0, atualizar_indicador_servidor)
+        except Exception:
+            break
 
-                if role == "system":
-                    system_instruction = content
-                elif role == "user":
-                    conteudo_dialogo.append(f"Usuário: {content}")
-                elif role == "assistant":
-                    conteudo_dialogo.append(f"Modelo: {content}")
+        time.sleep(5)
 
-            prompt_final = "\n\n".join(conteudo_dialogo)
-            config = genai.types.GenerateContentConfig(
-                temperature=temp,
-                system_instruction=system_instruction
-            )
+def atualizar_indicador_servidor():
+    if servidor_online:
+        lbl_status_servidor.config(
+            text=f"Servidor: On-line\nFila: {fila_atual_servidor}\nMensagens Enviadas: {pedidos_globais_servidor}",
+            fg="#2b7a4b"
+        )
+        if not simulacao_ativa and nome_professor.get().strip():
+            btn_entrar_aula.config(state="normal")
+    else:
+        lbl_status_servidor.config(
+            text="Servidor: Off-line",
+            fg="#aa3a3a"
+        )
+        if not simulacao_ativa:
+            btn_entrar_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
 
-            resposta = cliente_gemini.models.generate_content(
-                model=MODELO_GEMINI,
-                contents=prompt_final,
-                config=config
-            )
+def executar_chamada_ia(mensagens, temp=0.75, max_t=100):
+    if not servidor_online:
+        raise Exception("O servidor não respondeu.")
 
-            return resposta.text.strip()
+    payload = {
+        "sala_id": str(salas_de_aula),
+        "professor": nome_professor.get(),
+        "aluno": aluno_atual if aluno_atual else "Desconhecido",
+        "tema": tema.get(),
+        "mensagens": mensagens
+    }
 
-        except Exception as e:
-            raise e
+    try:
+        resposta = requests.post(URL_SERVIDOR_CHAT, json=payload, timeout=60)
+        resposta.raise_for_status()
+        dados = resposta.json()
+
+        return dados.get("resposta")
+    except Exception as e:
+        raise Exception(f"Erro no servidor: {str(e)}")
 
 def obter_caminho(arquivo):
     if hasattr(sys, '_MEIPASS'):
@@ -580,7 +610,7 @@ def iniciar_simulacao():
     ]
 
     try:
-        duvida_inicial = executar_chamada_gemini(mensagens, temp=0.8, max_t=200)
+        duvida_inicial = executar_chamada_ia(mensagens, temp=0.8, max_t=200)
         historico_contexto.append({"role": "assistant", "content": duvida_inicial})
     except Exception as e:
         comecar.config(state="normal", bg="#202024", fg="#aa3a3a", text="❌ Encerrar Simulação")
@@ -625,7 +655,7 @@ def enviar_mensagem_professor():
     mensagens.extend(historico_recente)
 
     try:
-        resposta_ia = executar_chamada_gemini(mensagens, temp=0.75, max_t=200)
+        resposta_ia = executar_chamada_ia(mensagens, temp=0.75, max_t=200)
         historico_contexto.append({"role": "assistant", "content": resposta_ia})
     except Exception as e:
         comecar.config(state="normal", bg="#202024", fg="#aa3a3a", text="❌ Encerrar Simulação")
@@ -808,7 +838,7 @@ def finalizar_aula():
     }]
 
     try:
-        critica = executar_chamada_gemini(prompt_aval, temp=0.55, max_t=175)
+        critica = executar_chamada_ia(prompt_aval, temp=0.55, max_t=175)
     except Exception as e:
         adicionar_balao_chat("Erro de IA", f"Não foi possível gerar a avaliação final.\nErro: {str(e)}", "erro")
         return
@@ -839,7 +869,7 @@ def finalizar_aula():
     }]
 
     try:
-        curiosidade = executar_chamada_gemini(prompt_ambiental, temp=0.7, max_t=140)
+        curiosidade = executar_chamada_ia(prompt_ambiental, temp=0.7, max_t=140)
         adicionar_balao_chat("Meio ambiente", curiosidade, "ambiental")
     except:
         pass
@@ -873,73 +903,101 @@ if not atualizacao_pendente:
     root.iconphoto(True, icone)
     root.configure(bg="#121214")
 
-    largura, altura = 1172, 855
-    root.minsize(1172, 855)
+    largura, altura = 1200, 700
+    root.minsize(1024, 600)
     tela_largura = root.winfo_screenwidth()
     tela_altura = root.winfo_screenheight()
     x = (tela_largura // 2) - (largura // 2)
     y = (tela_altura // 2) - (altura // 2)
     root.geometry(f"{largura}x{altura}+{x}+{y}")
 
+    if platform.system() == "Windows":
+        root.state('zoomed')
+    else:
+        root.attributes('-zoomed', True)
+
     root.columnconfigure(0, weight=0)
     root.columnconfigure(1, weight=1)
     root.rowconfigure(0, weight=1)
 
     ##########PAINEL ESQUERDO
-    painel_esquerdo = tk.Frame(root, bg="#202024", width=300, height=620)
-    painel_esquerdo.grid(row=0, column=0, sticky="nsew", padx=(0, 2))
-    painel_esquerdo.grid_propagate(False)
+    container_esquerdo = tk.Frame(root, bg="#202024", width=320)
+    container_esquerdo.grid(row=0, column=0, sticky="nsew", padx=(0, 2))
+    container_esquerdo.grid_propagate(False)
+    container_esquerdo.rowconfigure(0, weight=1)
+    container_esquerdo.columnconfigure(0, weight=1)
+
+    canvas_esquerdo = tk.Canvas(container_esquerdo, bg="#202024", bd=0, highlightthickness=0)
+    scroll_esquerdo = ttk.Scrollbar(container_esquerdo, orient="vertical", command=canvas_esquerdo.yview)
+
+    painel_esquerdo = tk.Frame(canvas_esquerdo, bg="#202024")
+    painel_esquerdo.bind(
+        "<Configure>",
+        lambda e: canvas_esquerdo.configure(scrollregion=canvas_esquerdo.bbox("all"))
+    )
+
+    canvas_esquerdo.create_window((0, 0), window=painel_esquerdo, anchor="nw", width=300)
+    canvas_esquerdo.configure(yscrollcommand=scroll_esquerdo.set)
+
+    canvas_esquerdo.grid(row=0, column=0, sticky="nsew")
+    scroll_esquerdo.grid(row=0, column=1, sticky="ns")
 
     logo_base = tk.PhotoImage(file=obter_caminho("professorIA.gif"))
     logo_img = logo_base.subsample(3, 3)
     label = tk.Label(painel_esquerdo, image=logo_img, bg="#202024")
     label.image = logo_img
-    label.grid(row=0, column=0, sticky="w", padx=20, pady=(30, 10))
+    label.grid(row=0, column=0, sticky="w", padx=20, pady=(5, 5))
 
     tk.Label(painel_esquerdo, text="Qual o nome do professor?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=1, column=0, sticky="w", padx=20, pady=(5, 5))
 
     nome_professor = tk.Entry(painel_esquerdo, font=("Consolas", 12), bg="#121214", fg="black", insertbackground="black", bd=1, relief="solid")
     nome_professor.insert(0, nome_professor_i)
-    nome_professor.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
+    nome_professor.grid(row=2, column=0, padx=20, pady=(0, 5), sticky="ew", ipady=8)
     nome_professor.config(state="normal", fg="white", bg="#18181c")
 
     btn_entrar_aula = tk.Button(painel_esquerdo, text="🚪 Entrar na Sala de Aula", font=("Consolas", 12, "bold"), bg="#202024", fg="#2b7a4b", bd=0, relief="solid", borderwidth=1, height=2, width=26, command=gerar_perfil)
     btn_entrar_aula.grid(row=3, column=0, padx=20, pady=(0, 15), sticky="ew")
 
-    tk.Frame(painel_esquerdo, bg="#29292e", height=1).grid(row=4, column=0, sticky="ew", padx=20, pady=(0, 20))
-    tk.Label(painel_esquerdo, text="Configuração da Aula", font=("Consolas", 16, "bold"), bg="#202024", fg="#e1e1e6").grid(row=5, column=0, sticky="w", padx=20, pady=(10, 20))
+    tk.Frame(painel_esquerdo, bg="#29292e", height=1).grid(row=4, column=0, sticky="ew", padx=20, pady=(0, 5))
+    tk.Label(painel_esquerdo, text="Configuração da Aula", font=("Consolas", 16, "bold"), bg="#202024", fg="#e1e1e6").grid(row=5, column=0, sticky="w", padx=20, pady=(5, 5))
     tk.Label(painel_esquerdo, text="Qual o tema/conceito da aula?", font=("Consolas", 11), bg="#202024", fg="#e1e1e6").grid(row=6, column=0, sticky="w", padx=20, pady=(5, 5))
 
     tema = tk.Entry(painel_esquerdo, font=("Consolas", 12), bg="#121214", fg="black", insertbackground="black", bd=1, relief="solid")
     tema.insert(0, " ")
-    tema.grid(row=7, column=0, padx=20, pady=(0, 20), sticky="ew", ipady=8)
+    tema.grid(row=7, column=0, padx=20, pady=(0, 5), sticky="ew", ipady=8)
     tema.config(state="disabled", disabledbackground="#202024", disabledforeground="#8f8f98")
 
     comecar = tk.Button(painel_esquerdo, text="🚀 Iniciar Simulação", font=("Consolas", 12, "bold"), bg="#202024", fg="#8f8f98", bd=0, relief="solid", borderwidth=1, height=2, command=iniciar_simulacao)
-    comecar.grid(row=8, column=0, padx=20, pady=(0, 15), sticky="ew")
+    comecar.grid(row=8, column=0, padx=20, pady=(5, 5), sticky="ew")
     comecar.config(state="disabled", bg="#202024", fg="#8f8f98")
 
     btn_sair_aula = tk.Button(painel_esquerdo, text="🏃 Sair da Sala de Aula", font=("Consolas", 12, "bold"), bg="#444449", fg="#8f8f98", bd=0, relief="solid", borderwidth=1, height=2, command=reiniciar_aula)
-    btn_sair_aula.grid(row=9, column=0, padx=20, pady=(0, 15), sticky="ew")
+    btn_sair_aula.grid(row=9, column=0, padx=20, pady=(5, 5), sticky="ew")
     btn_sair_aula.config(state="disabled", bg="#202024", fg="#8f8f98")
 
     if som_ativo == True:
         btn_mute = tk.Button(painel_esquerdo, text="🔊 Sons: Ativos", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=mutar)
     else:
         btn_mute = tk.Button(painel_esquerdo, text="🔊 Sons: Inativos", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=mutar)
-    btn_mute.grid(row=10, column=0, padx=20, pady=(0, 15), sticky="ew")
+    btn_mute.grid(row=10, column=0, padx=20, pady=(5, 5), sticky="ew")
     btn_mute.config(state="disabled", bg="#202024", fg="#8f8f98")
 
     btn_historico = tk.Button(painel_esquerdo, text="📜 Histórico", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=historico)
-    btn_historico.grid(row=11, column=0, padx=20, pady=(0, 15), sticky="ew")
+    btn_historico.grid(row=11, column=0, padx=20, pady=(5, 5), sticky="ew")
     btn_historico.config(state="disabled", bg="#202024", fg="#8f8f98")
 
     btn_sobre = tk.Button(painel_esquerdo, text="📌 Sobre o App", font=("Consolas", 12, "bold"), bg="#1E96FC", fg="white", bd=0, relief="solid", borderwidth=1, height=2, command=sobre_app)
-    btn_sobre.grid(row=12, column=0, padx=20, pady=(0, 15), sticky="ew")
+    btn_sobre.grid(row=12, column=0, padx=20, pady=(5, 5), sticky="ew")
     btn_sobre.config(state="disabled", bg="#202024", fg="#8f8f98")
 
-    direitos = tk.Label(painel_esquerdo, text="UnB - Computação - APC 06\nGarotos de Programa", bg="#202024", fg="gray")
-    direitos.place(relx=0.5, rely=1.0, anchor="s", y=-10)
+    lbl_status_servidor = tk.Label(painel_esquerdo, text="Conectando ao servidor...", font=("Consolas", 8, "bold"), bg="#202024", fg="#ad8822", wraplength=260)
+    lbl_status_servidor.grid(row=13, column=0, padx=20, pady=(5, 5), sticky="ew")
+
+    direitos = tk.Label(container_esquerdo, text="UnB - Computação - APC 06\nGarotos de Programa", bg="#202024", fg="gray", font=("Consolas", 9), justify="center")
+    direitos.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(5, 10))
+
+    thread_monitor = threading.Thread(target=monitorar_servidor, daemon=True)
+    thread_monitor.start()
 
     ##########PAINEL DIREITO
     painel_direito = tk.Frame(root, bg="#121214")

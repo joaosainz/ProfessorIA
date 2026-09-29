@@ -1,4 +1,11 @@
-V2.0.0
+V2.1.0 - 29/09/26
+  -
+  - Suporte a dispostivos com monitores menores
+  - Controle de fila para requisições
+  - Adição de servidor próprio
+  - Mudança sutis na interface
+
+V2.0.0 - 26/09/26
   - **Changelog** Criado!
   - Mudança de API da IA (Groq -> Google)
   - Mudança do Modelo da IA (Compound Mini -> Gemini 3.5 Flash Lite)
